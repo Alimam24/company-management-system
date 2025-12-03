@@ -174,4 +174,38 @@ class StoreController extends Controller
         return redirect()->route('stores.employees', $store)
             ->with('error', 'This employee is not assigned to this store.');
     }
+
+    public function assignEmployeesPage(Retail_Store $store)
+    {
+        // Employees not assigned to any store
+        $employees = Employee::whereNull('assignable_id')
+            ->whereNull('assignable_type')
+            ->with('department', 'emp_role', 'person')
+            ->paginate(10);
+
+       // $departments = Department::all();
+
+        return view('stores.assign-employees', [
+            'store' => $store,
+            'employees' => $employees,
+            // 'departments' => $departments,
+        ]);
+    }
+
+    public function assignSelectedEmployees(Request $request, Retail_Store $store)
+    {
+        $employeeIds = $request->input('employees', []);
+
+        if (empty($employeeIds)) {
+            return back()->with('error', 'Please select at least one employee.');
+        }
+
+        Employee::whereIn('id', $employeeIds)->update([
+            'assignable_id' => $store->id,
+            'assignable_type' => Retail_Store::class,
+        ]);
+
+        return redirect()->route('stores.employees', $store)
+            ->with('success', 'Employees assigned successfully.');
+    }
 }
