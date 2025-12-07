@@ -29,4 +29,13 @@ Route::middleware(['dept:Retail Store Management'])
 
         Route::post('/{store}/assign-employees', [StoreController::class, 'assignSelectedEmployees'])
             ->name('employees.assign.submit');
+
+        Route::get('/{store}/assign-manager', [StoreController::class, 'assignManagerPage'])
+            ->name('manager.assign.page');
+
+        Route::post('/{store}/assign-manager', [StoreController::class, 'assignManager'])
+            ->name('manager.assign.submit');
+
+        Route::delete('/{store}/manager', [StoreController::class, 'removeManager'])
+            ->name('manager.remove');
     });

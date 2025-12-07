@@ -7,6 +7,7 @@ use App\Models\department;
 use App\Models\employee;
 use App\Models\retail_store;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StoreController extends Controller
 {
@@ -15,17 +16,17 @@ class StoreController extends Controller
      */
     public function index(Request $request)
     {
-        $cities = City::all(); // all cities for the dropdown
+        $cities = city::all(); // all cities for the dropdown
 
         // Start a query on the retail_store model
-        $query = Retail_Store::with('City'); // eager load the related City
+        $query = retail_store::with('city'); // eager load the related city
 
         // Search by store name, city name, or phone
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('StoreName', 'like', "%{$search}%")
                     ->orWhere('Phone', 'like', "%{$search}%")
-                    ->orWhereHas('City', function ($q2) use ($search) {
+                    ->orWhereHas('city', function ($q2) use ($search) {
                         $q2->where('Name', 'like', "%{$search}%");
                     });
             });
@@ -80,12 +81,13 @@ class StoreController extends Controller
      */
     public function show(retail_store $store)
     {
+        $store->load(['city', 'manager.person']);
         return view('stores.show', ['store' => $store]);
     }
 
     public function edit(retail_store $store)
     {
-        $Cities = City::all();
+        $Cities = city::all();
 
         return view('stores.edit', [
             'Cities' => $Cities,
@@ -128,7 +130,7 @@ class StoreController extends Controller
         return redirect('/stores');
     }
 
-    public function listEmployees(Retail_Store $store)
+    public function listEmployees(retail_store $store)
     {
         $departments = Department::all();
 
@@ -158,10 +160,10 @@ class StoreController extends Controller
         ]);
     }
 
-    public function destroyemp(Retail_Store $store, employee $employee)
+    public function destroyemp(retail_store $store, employee $employee)
     {
         // Check if this employee is actually assigned to this store
-        if ($employee->assignable_type === Retail_Store::class && $employee->assignable_id == $store->id) {
+        if ($employee->assignable_type === retail_store::class && $employee->assignable_id == $store->id) {
             // Remove the assignment
             $employee->assignable_type = null;
             $employee->assignable_id = null;
@@ -175,15 +177,18 @@ class StoreController extends Controller
             ->with('error', 'This employee is not assigned to this store.');
     }
 
-    public function assignEmployeesPage(Retail_Store $store)
+    public function assignEmployeesPage(retail_store $store)
     {
         // Employees not assigned to any store
         $employees = Employee::whereNull('assignable_id')
             ->whereNull('assignable_type')
-            ->with('department', 'emp_role', 'person')
+            ->with(['department', 'emp_role', 'person'])
+            ->whereHas('emp_role', function ($q) {
+                $q->whereIn('RoleName', ['employee', 'marketer']);
+            })
             ->paginate(10);
 
-       // $departments = Department::all();
+        // $departments = Department::all();
 
         return view('stores.assign-employees', [
             'store' => $store,
@@ -192,20 +197,210 @@ class StoreController extends Controller
         ]);
     }
 
-    public function assignSelectedEmployees(Request $request, Retail_Store $store)
+    public function assignSelectedEmployees(Request $request, retail_store $store)
     {
-        $employeeIds = $request->input('employees', []);
-
-        if (empty($employeeIds)) {
-            return back()->with('error', 'Please select at least one employee.');
-        }
-
-        Employee::whereIn('id', $employeeIds)->update([
-            'assignable_id' => $store->id,
-            'assignable_type' => Retail_Store::class,
+        // Validate the request with proper Laravel validation rules
+        $validated = $request->validate([
+            'employees' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'employees.*' => [
+                'required',
+                'integer',
+                'exists:employees,id',
+            ],
+        ], [
+            'employees.required' => 'Please select at least one employee to assign.',
+            'employees.array' => 'Invalid employee selection format.',
+            'employees.min' => 'Please select at least one employee to assign.',
+            'employees.*.required' => 'Invalid employee selection.',
+            'employees.*.integer' => 'Employee ID must be a valid number.',
+            'employees.*.exists' => 'One or more selected employees do not exist.',
         ]);
 
-        return redirect()->route('stores.employees', $store)
-            ->with('success', 'Employees assigned successfully.');
+        $employeeIds = $validated['employees'];
+
+        // Fetch all employees once with all necessary relationships
+        $employees = employee::whereIn('id', $employeeIds)
+            ->with(['person', 'emp_role', 'assignable'])
+            ->get();
+
+        // Check if employees are already assigned to this store
+        $alreadyAssignedToThisStore = $employees->filter(function ($emp) use ($store) {
+            return $emp->assignable_type === retail_store::class && $emp->assignable_id == $store->id;
+        });
+
+        if ($alreadyAssignedToThisStore->isNotEmpty()) {
+            $names = $alreadyAssignedToThisStore->map(function ($emp) {
+                return $emp->person->FirstName . ' ' . $emp->person->LastName;
+            })->implode(', ');
+
+            return back()
+                ->withInput()
+                ->with('error', "The following employees are already assigned to this store: {$names}.");
+        }
+
+        // Check if employees are already assigned to another store or warehouse
+        $alreadyAssigned = $employees->filter(function ($emp) {
+            return $emp->assignable_id !== null && $emp->assignable_type !== null;
+        });
+
+        if ($alreadyAssigned->isNotEmpty()) {
+            $names = $alreadyAssigned->map(function ($emp) {
+                return $emp->person->FirstName . ' ' . $emp->person->LastName;
+            })->implode(', ');
+
+            return back()
+                ->withInput()
+                ->with('error', "The following employees are already assigned: {$names}. Please select unassigned employees only.");
+        }
+
+        // Verify employees have the correct roles (employee or marketer)
+        $invalidRoles = $employees->filter(function ($emp) {
+            return !in_array($emp->emp_role->RoleName, ['employee', 'marketer']);
+        });
+
+        if ($invalidRoles->isNotEmpty()) {
+            $names = $invalidRoles->map(function ($emp) {
+                return $emp->person->FirstName . ' ' . $emp->person->LastName . ' (' . $emp->emp_role->RoleName . ')';
+            })->implode(', ');
+
+            return back()
+                ->withInput()
+                ->with('error', "The following employees have invalid roles for store assignment: {$names}. Only employees and marketers can be assigned to stores.");
+        }
+
+        // try to assign employees to the store
+        try {
+            DB::transaction(function () use ($employeeIds, $store) {
+                employee::whereIn('id', $employeeIds)->update([
+                    'assignable_id' => $store->id,
+                    'assignable_type' => retail_store::class,
+                ]);
+            });
+
+            $count = count($employeeIds);
+            $message = $count === 1 
+                ? 'Employee assigned successfully.' 
+                : "{$count} employees assigned successfully.";
+
+            return redirect()->route('stores.employees', $store)
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'An error occurred while assigning employees. Please try again.');
+        }
+    }
+
+    public function assignManagerPage(retail_store $store)
+    {
+        // Get all employees with manager role
+        $allManagers = employee::whereHas('emp_role', function ($q) {
+                $q->where('RoleName', 'manager');
+            })
+            ->with(['person', 'emp_role'])
+            ->get();
+
+        // Get IDs of managers already assigned to other stores or warehouses
+        $assignedManagerIds = retail_store::whereNotNull('manager_id')
+            ->where('id', '!=', $store->id)
+            ->pluck('manager_id')
+            ->merge(
+                \App\Models\warehouse::whereNotNull('manager_id')->pluck('manager_id')
+            )
+            ->unique()
+            ->toArray();
+
+        // Filter out already assigned managers, but include current manager if exists
+        $managers = $allManagers->filter(function ($manager) use ($assignedManagerIds, $store) {
+            return !in_array($manager->id, $assignedManagerIds) || $manager->id === $store->manager_id;
+        });
+
+        $currentManager = $store->manager;
+
+        return view('stores.assign-manager', [
+            'store' => $store,
+            'managers' => $managers,
+            'currentManager' => $currentManager,
+        ]);
+    }
+
+    public function assignManager(Request $request, retail_store $store)
+    {
+        $validated = $request->validate([
+            'manager_id' => [
+                'required',
+                'integer',
+                'exists:employees,id',
+            ],
+        ], [
+            'manager_id.required' => 'Please select a manager.',
+            'manager_id.exists' => 'The selected employee does not exist.',
+        ]);
+
+        $managerId = $validated['manager_id'];
+
+        // Verify the employee has manager role
+        $manager = employee::with(['person', 'emp_role'])->findOrFail($managerId);
+        
+        if ($manager->emp_role->RoleName !== 'manager') {
+            return back()
+                ->withInput()
+                ->with('error', 'The selected employee is not a manager. Only employees with manager role can be assigned as store managers.');
+        }
+
+        // Check if this manager is already managing another store
+        $otherStore = retail_store::where('manager_id', $managerId)
+            ->where('id', '!=', $store->id)
+            ->first();
+
+        if ($otherStore) {
+            return back()
+                ->withInput()
+                ->with('error', "This manager is already assigned to another store: {$otherStore->StoreName}.");
+        }
+
+        // Check if this manager is already managing a warehouse
+        $warehouse = \App\Models\warehouse::where('manager_id', $managerId)->first();
+        if ($warehouse) {
+            return back()
+                ->withInput()
+                ->with('error', "This manager is already assigned to warehouse: {$warehouse->WarehouseName}.");
+        }
+
+        try {
+            DB::transaction(function () use ($store, $managerId) {
+                $store->update(['manager_id' => $managerId]);
+            });
+
+            return redirect()->route('stores.show', $store)
+                ->with('success', 'Manager assigned successfully.');
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'An error occurred while assigning the manager. Please try again.');
+        }
+    }
+
+    public function removeManager(retail_store $store)
+    {
+        if (!$store->manager_id) {
+            return back()->with('error', 'This store does not have a manager assigned.');
+        }
+
+        try {
+            DB::transaction(function () use ($store) {
+                $store->update(['manager_id' => null]);
+            });
+
+            return redirect()->route('stores.show', $store)
+                ->with('success', 'Manager removed successfully.');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'An error occurred while removing the manager. Please try again.');
+        }
     }
 }

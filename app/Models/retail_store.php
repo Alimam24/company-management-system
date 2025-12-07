@@ -19,4 +19,9 @@ class retail_store extends Model
     {
         return $this->morphMany(employee::class,'assignable');
     }
+
+    public function manager()
+    {
+        return $this->belongsTo(employee::class, 'manager_id');
+    }
 }
