@@ -42,10 +42,45 @@
                         <span>Join Date:</span>
                         <span class="font-medium text-gray-900">{{ $warehouse->created_at ? $warehouse->created_at->format('d/m/Y') : 'N/A' }}</span>
                     </div>
+                    <div class="flex justify-between text-gray-700">
+                        <span>Manager:</span>
+                        <span class="font-medium text-gray-900">
+                            @if($warehouse->manager)
+                                {{ $warehouse->manager->person->FirstName . ' ' . $warehouse->manager->person->LastName }}
+                            @else
+                                <span class="text-gray-400">Not assigned</span>
+                            @endif
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-gray-700">
+                        <span>Employees:</span>
+                        <span class="font-medium text-gray-900">{{ $warehouse->employees()->count() }}</span>
+                    </div>
                 </div>
 
                 <!-- Actions -->
                 <div class="flex flex-wrap items-center justify-end gap-3 pt-5 border-t border-gray-100">
+                    <a href="{{ route('warehouses.manager.assign.page', $warehouse) }}" 
+                       class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition-all duration-150">
+                        {{ $warehouse->manager ? 'Change Manager' : 'Assign Manager' }}
+                    </a>
+
+                    @if($warehouse->manager)
+                    <form method="POST" action="{{ route('warehouses.manager.remove', $warehouse) }}" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" onclick="return confirm('Remove manager from this warehouse?')"
+                            class="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg shadow hover:bg-orange-700 transition-all duration-150">
+                            Remove Manager
+                        </button>
+                    </form>
+                    @endif
+
+                    <a href="{{ route('warehouses.employees', $warehouse) }}" 
+                       class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition-all duration-150">
+                        Manage Employees
+                    </a>
+
                     <a href="/warehouses/{{ $warehouse->id }}/edit" 
                        class="px-4 py-2 bg-purple-700 text-white text-sm font-medium rounded-lg shadow hover:bg-purple-800 transition-all duration-150">
                         Edit warehouse
