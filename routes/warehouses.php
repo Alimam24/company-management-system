@@ -15,9 +15,23 @@ Route::middleware(['dept:Warehouse Management'])
         Route::get('/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('edit');
         Route::patch('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
 
-        Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
-        Route::delete('/{warehouse}', [WarehouseController::class, 'destroy'])->name('destroy');
+        // Product management routes (more specific routes first)
+        Route::get('/{warehouse}/products', [WarehouseController::class, 'listProducts'])
+            ->name('products');
 
+        Route::get('/{warehouse}/assign-products', [WarehouseController::class, 'assignProductsPage'])
+            ->name('products.assign.page');
+
+        Route::post('/{warehouse}/assign-products', [WarehouseController::class, 'assignProducts'])
+            ->name('products.assign.submit');
+
+        Route::patch('/{warehouse}/products/{product}', [WarehouseController::class, 'updateProductQuantity'])
+            ->name('products.update');
+
+        Route::delete('/{warehouse}/products/{product}', [WarehouseController::class, 'removeProduct'])
+            ->name('products.remove');
+
+        // Employee management routes
         Route::get('/{warehouse}/employees', [WarehouseController::class, 'listEmployees'])
             ->name('employees');
             
@@ -30,6 +44,7 @@ Route::middleware(['dept:Warehouse Management'])
         Route::post('/{warehouse}/assign-employees', [WarehouseController::class, 'assignSelectedEmployees'])
             ->name('employees.assign.submit');
 
+        // Manager management routes
         Route::get('/{warehouse}/assign-manager', [WarehouseController::class, 'assignManagerPage'])
             ->name('manager.assign.page');
 
@@ -38,4 +53,11 @@ Route::middleware(['dept:Warehouse Management'])
 
         Route::delete('/{warehouse}/manager', [WarehouseController::class, 'removeManager'])
             ->name('manager.remove');
+
+        // Warehouse CRUD routes (less specific routes last)
+        Route::get('/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('edit');
+        Route::patch('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
+
+        Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
+        Route::delete('/{warehouse}', [WarehouseController::class, 'destroy'])->name('destroy');
     });

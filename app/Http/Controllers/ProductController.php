@@ -67,6 +67,8 @@ class ProductController extends Controller
      */
     public function show(product $product)
     {
+        // Eager load retail stores and warehouses with pivot data
+        $product->load(['retail_stores', 'warehouses']);
         return view('products.show', ['product' => $product]);
     }
 

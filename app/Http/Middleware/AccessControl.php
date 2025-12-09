@@ -28,10 +28,10 @@ class AccessControl
         //     abort(403, 'Your account is inactive.');
         // }
 
-        // Check department
-        if ($departmentName && $employee->department->DeptName != $departmentName) {
-            abort(403, 'You do not have access to this department.');
-        }
+        // // Check department
+        // if ($departmentName && $employee->department->DeptName != $departmentName) {
+        //     abort(403, 'You do not have access to this department.');
+        // }
 
         // Check role
         if ($roleName && $employee->role->name != $roleName) {

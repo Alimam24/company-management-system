@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\warehouse;
 use App\Models\employee;
 use App\Models\department;
+use App\Models\product;
 use App\Models\retail_store;
 use Illuminate\Http\Request;
 use App\Models\city;
@@ -83,7 +84,7 @@ class WarehouseController extends Controller
      */
     public function show(warehouse $warehouse)
     {
-         $warehouse->load(['city', 'manager.person']);
+         $warehouse->load(['city', 'manager.person', 'products']);
          return view('warehouses.show', ['warehouse' => $warehouse]);
     }
 
@@ -397,6 +398,196 @@ class WarehouseController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->with('error', 'An error occurred while removing the manager. Please try again.');
+        }
+    }
+
+    /**
+     * Display products in a warehouse with pagination, search, and filtering
+     */
+    public function listProducts(warehouse $warehouse, Request $request)
+    {
+        // Start query from the relationship
+        $query = $warehouse->products();
+
+        // Search by product name
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        // Paginate the results
+        $products = $query->paginate(10)->withQueryString();
+
+        return view('warehouses.products', [
+            'products' => $products,
+            'warehouse' => $warehouse,
+        ]);
+    }
+
+    /**
+     * Display page for assigning products to warehouse
+     */
+    public function assignProductsPage(warehouse $warehouse, Request $request)
+    {
+        // Get products not already assigned to this warehouse
+        $assignedProductIds = $warehouse->products()->pluck('products.id')->toArray();
+        
+        $query = product::query();
+        
+        if (!empty($assignedProductIds)) {
+            $query->whereNotIn('id', $assignedProductIds);
+        }
+
+        // Search by product name
+        if ($search = $request->input('search')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $products = $query->paginate(10)->withQueryString();
+
+        return view('warehouses.assign-products', [
+            'warehouse' => $warehouse,
+            'products' => $products,
+        ]);
+    }
+
+    /**
+     * Assign products to warehouse with quantities
+     */
+    public function assignProducts(Request $request, warehouse $warehouse)
+    {
+        // Get the products array from request (it's keyed by product ID)
+        $productsData = $request->input('products', []);
+        $productCheckboxes = $request->input('product_checkbox', []);
+
+        // Filter only checked products
+        $selectedProducts = [];
+        foreach ($productCheckboxes as $productId) {
+            if (isset($productsData[$productId]) && isset($productsData[$productId]['quantity'])) {
+                $selectedProducts[$productId] = [
+                    'id' => (int)$productId,
+                    'quantity' => (int)$productsData[$productId]['quantity']
+                ];
+            }
+        }
+
+        // Validate that at least one product is selected
+        if (empty($selectedProducts)) {
+            return back()
+                ->withInput()
+                ->with('error', 'Please select at least one product to assign.');
+        }
+
+        // Validate each product
+        $validated = $request->validate([
+            'products' => ['required', 'array'],
+        ]);
+
+        foreach ($selectedProducts as $productId => $productData) {
+            $request->validate([
+                "products.{$productId}.id" => ['required', 'integer', 'exists:products,id'],
+                "products.{$productId}.quantity" => ['required', 'integer', 'min:0'],
+            ], [
+                "products.{$productId}.id.required" => 'Invalid product selection.',
+                "products.{$productId}.id.exists" => 'One or more selected products do not exist.',
+                "products.{$productId}.quantity.required" => 'Quantity is required for all products.',
+                "products.{$productId}.quantity.integer" => 'Quantity must be an integer.',
+                "products.{$productId}.quantity.min" => 'Quantity must be 0 or greater.',
+            ]);
+        }
+
+        $productIds = array_column($selectedProducts, 'id');
+
+        // Check if any products are already assigned to this warehouse
+        $assignedProductIds = $warehouse->products()->whereIn('products.id', $productIds)->pluck('products.id')->toArray();
+        if (!empty($assignedProductIds)) {
+            $assignedProducts = product::whereIn('id', $assignedProductIds)->pluck('name')->implode(', ');
+            return back()
+                ->withInput()
+                ->with('error', "The following products are already assigned to this warehouse: {$assignedProducts}.");
+        }
+
+        try {
+            DB::transaction(function () use ($warehouse, $selectedProducts) {
+                $syncData = [];
+                foreach ($selectedProducts as $productData) {
+                    $syncData[$productData['id']] = ['amount' => $productData['quantity']];
+                }
+                $warehouse->products()->syncWithoutDetaching($syncData);
+            });
+
+            $count = count($selectedProducts);
+            $message = $count === 1 
+                ? 'Product assigned successfully.' 
+                : "{$count} products assigned successfully.";
+
+            return redirect()->route('warehouses.products', $warehouse)
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'An error occurred while assigning products. Please try again.');
+        }
+    }
+
+    /**
+     * Update quantity of a product in a warehouse
+     */
+    public function updateProductQuantity(Request $request, warehouse $warehouse, product $product)
+    {
+        // Verify product is assigned to this warehouse
+        if (!$warehouse->products()->where('products.id', $product->id)->exists()) {
+            return back()
+                ->with('error', 'This product is not assigned to this warehouse.');
+        }
+
+        $validated = $request->validate([
+            'quantity' => [
+                'required',
+                'integer',
+                'min:0',
+            ],
+        ], [
+            'quantity.required' => 'Quantity is required.',
+            'quantity.integer' => 'Quantity must be an integer.',
+            'quantity.min' => 'Quantity must be 0 or greater.',
+        ]);
+
+        try {
+            DB::transaction(function () use ($warehouse, $product, $validated) {
+                $warehouse->products()->updateExistingPivot($product->id, [
+                    'amount' => $validated['quantity']
+                ]);
+            });
+
+            return redirect()->route('warehouses.products', $warehouse)
+                ->with('success', 'Product quantity updated successfully.');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'An error occurred while updating the product quantity. Please try again.');
+        }
+    }
+
+    /**
+     * Remove a product from a warehouse
+     */
+    public function removeProduct(warehouse $warehouse, product $product)
+    {
+        // Verify product is assigned to this warehouse
+        if (!$warehouse->products()->where('products.id', $product->id)->exists()) {
+            return back()
+                ->with('error', 'This product is not assigned to this warehouse.');
+        }
+
+        try {
+            DB::transaction(function () use ($warehouse, $product) {
+                $warehouse->products()->detach($product->id);
+            });
+
+            return redirect()->route('warehouses.products', $warehouse)
+                ->with('success', 'Product removed from warehouse successfully.');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', 'An error occurred while removing the product. Please try again.');
         }
     }
 }

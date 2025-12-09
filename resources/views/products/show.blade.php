@@ -27,6 +27,64 @@
                 </p>
             </div>
 
+            <!-- Available in Retail Stores Section -->
+            <div class="mt-8 border-t border-gray-200 pt-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Available in Retail Stores</h2>
+                @if($product->retail_stores && $product->retail_stores->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($product->retail_stores as $store)
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                                <div class="flex-1">
+                                    <a href="{{ route('stores.show', $store) }}" 
+                                       class="text-purple-700 hover:text-purple-800 font-medium text-lg">
+                                        {{ $store->StoreName }}
+                                    </a>
+                                    <p class="text-sm text-gray-600 mt-1">{{ $store->City->Name ?? 'N/A' }}, {{ $store->Address }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                                        Quantity: {{ $store->pivot->amount }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                        <p class="text-gray-600">This product is not currently available in any retail stores.</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Available in Warehouses Section -->
+            <div class="mt-8 border-t border-gray-200 pt-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Available in Warehouses</h2>
+                @if($product->warehouses && $product->warehouses->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($product->warehouses as $warehouse)
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                                <div class="flex-1">
+                                    <a href="{{ route('warehouses.show', $warehouse) }}" 
+                                       class="text-purple-700 hover:text-purple-800 font-medium text-lg">
+                                        {{ $warehouse->WarehouseName }}
+                                    </a>
+                                    <p class="text-sm text-gray-600 mt-1">{{ $warehouse->City->Name ?? 'N/A' }}, {{ $warehouse->Address }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                                        Quantity: {{ $warehouse->pivot->amount }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                        <p class="text-gray-600">This product is not currently available in any warehouses.</p>
+                    </div>
+                @endif
+            </div>
+
             <!-- Footer Buttons -->
             <div class="mt-8 flex justify-end gap-4">
                 <!-- Edit -->

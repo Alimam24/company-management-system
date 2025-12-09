@@ -12,12 +12,23 @@ Route::middleware(['dept:Retail Store Management'])
         Route::get('/create', [StoreController::class, 'create'])->name('create');
         Route::post('/', [StoreController::class, 'store'])->name('store');
 
-        Route::get('/{store}/edit', [StoreController::class, 'edit'])->name('edit');
-        Route::patch('/{store}', [StoreController::class, 'update'])->name('update');
+        // Product management routes (more specific routes first)
+        Route::get('/{store}/products', [StoreController::class, 'listProducts'])
+            ->name('products');
 
-        Route::get('/{store}', [StoreController::class, 'show'])->name('show');
-        Route::delete('/{store}', [StoreController::class, 'destroy'])->name('destroy');
+        Route::get('/{store}/assign-products', [StoreController::class, 'assignProductsPage'])
+            ->name('products.assign.page');
 
+        Route::post('/{store}/assign-products', [StoreController::class, 'assignProducts'])
+            ->name('products.assign.submit');
+
+        Route::patch('/{store}/products/{product}', [StoreController::class, 'updateProductQuantity'])
+            ->name('products.update');
+
+        Route::delete('/{store}/products/{product}', [StoreController::class, 'removeProduct'])
+            ->name('products.remove');
+
+        // Employee management routes
         Route::get('/{store}/employees', [StoreController::class, 'listemployees'])
             ->name('employees');
             
@@ -30,6 +41,7 @@ Route::middleware(['dept:Retail Store Management'])
         Route::post('/{store}/assign-employees', [StoreController::class, 'assignSelectedEmployees'])
             ->name('employees.assign.submit');
 
+        // Manager management routes
         Route::get('/{store}/assign-manager', [StoreController::class, 'assignManagerPage'])
             ->name('manager.assign.page');
 
@@ -38,4 +50,11 @@ Route::middleware(['dept:Retail Store Management'])
 
         Route::delete('/{store}/manager', [StoreController::class, 'removeManager'])
             ->name('manager.remove');
+
+        // Store CRUD routes (less specific routes last)
+        Route::get('/{store}/edit', [StoreController::class, 'edit'])->name('edit');
+        Route::patch('/{store}', [StoreController::class, 'update'])->name('update');
+
+        Route::get('/{store}', [StoreController::class, 'show'])->name('show');
+        Route::delete('/{store}', [StoreController::class, 'destroy'])->name('destroy');
     });

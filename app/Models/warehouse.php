@@ -24,4 +24,11 @@ class warehouse extends Model
     {
         return $this->belongsTo(employee::class, 'manager_id');
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(product::class, 'product_warehouse')
+                    ->withPivot('amount')
+                    ->withTimestamps();
+    }
 }

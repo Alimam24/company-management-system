@@ -24,4 +24,12 @@ class retail_store extends Model
     {
         return $this->belongsTo(employee::class, 'manager_id');
     }
+
+    public function products()
+    {
+        return $this->belongsToMany(product::class, 'product_store')
+                    ->withPivot('amount')
+                    ->withTimestamps();
+    }
 }
+

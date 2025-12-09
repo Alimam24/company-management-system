@@ -56,7 +56,57 @@
                         <span>Employees:</span>
                         <span class="font-medium text-gray-900">{{ $warehouse->employees()->count() }}</span>
                     </div>
+                    <div class="flex justify-between text-gray-700">
+                        <span>Products:</span>
+                        <span class="font-medium text-gray-900">{{ $warehouse->products->count() }}</span>
+                    </div>
                 </div>
+
+                <!-- Products Section -->
+                @if($warehouse->products && $warehouse->products->count() > 0)
+                <div class="mt-6 p-6 bg-gray-50 rounded-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900">Products in This Warehouse</h2>
+                        <a href="{{ route('warehouses.products', $warehouse) }}" 
+                           class="text-purple-700 hover:text-purple-800 font-medium text-sm">
+                            View All →
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        @foreach($warehouse->products->take(6) as $product)
+                            <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                                <div class="flex items-center gap-3 flex-1 min-w-0">
+                                    <img src="{{ $product->avatar_url }}" alt="{{ $product->name }}" 
+                                         class="w-10 h-10 rounded-lg object-cover flex-shrink-0">
+                                    <div class="flex-1 min-w-0">
+                                        <a href="{{ route('products.show', $product) }}" 
+                                           class="text-gray-900 font-medium hover:text-purple-700 truncate block">
+                                            {{ $product->name }}
+                                        </a>
+                                        <p class="text-xs text-gray-500">Qty: {{ $product->pivot->amount }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if($warehouse->products->count() > 6)
+                        <div class="mt-4 text-center">
+                            <a href="{{ route('warehouses.products', $warehouse) }}" 
+                               class="text-purple-700 hover:text-purple-800 font-medium">
+                                View {{ $warehouse->products->count() - 6 }} more products →
+                            </a>
+                        </div>
+                    @endif
+                </div>
+                @else
+                <div class="mt-6 p-6 bg-gray-50 rounded-lg text-center">
+                    <p class="text-gray-600 mb-4">No products assigned to this warehouse yet.</p>
+                    <a href="{{ route('warehouses.products.assign.page', $warehouse) }}" 
+                       class="inline-block px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg shadow hover:bg-teal-700 transition-all duration-150">
+                        Assign Products
+                    </a>
+                </div>
+                @endif
 
                 <!-- Actions -->
                 <div class="flex flex-wrap items-center justify-end gap-3 pt-5 border-t border-gray-100">
@@ -79,6 +129,11 @@
                     <a href="{{ route('warehouses.employees', $warehouse) }}" 
                        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition-all duration-150">
                         Manage Employees
+                    </a>
+
+                    <a href="{{ route('warehouses.products', $warehouse) }}" 
+                       class="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg shadow hover:bg-teal-700 transition-all duration-150">
+                        Manage Products
                     </a>
 
                     <a href="/warehouses/{{ $warehouse->id }}/edit" 
