@@ -52,6 +52,16 @@ Route::middleware(['dept:Retail Store Management'])
             ->name('manager.remove');
 
         // Store CRUD routes (less specific routes last)
+        // Warehouse linking routes
+        Route::get('/{store}/warehouses/link', [StoreController::class, 'linkWarehousesPage'])
+            ->name('warehouses.link.page');
+
+        Route::post('/{store}/warehouses/link', [StoreController::class, 'linkSelectedWarehouses'])
+            ->name('warehouses.link.submit');
+
+        Route::delete('/{store}/warehouses/{warehouse}', [StoreController::class, 'unlinkWarehouse'])
+            ->name('warehouses.unlink');
+
         Route::get('/{store}/edit', [StoreController::class, 'edit'])->name('edit');
         Route::patch('/{store}', [StoreController::class, 'update'])->name('update');
 

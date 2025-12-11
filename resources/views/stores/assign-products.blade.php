@@ -101,7 +101,6 @@
                                                        id="quantity_{{ $product->id }}"
                                                        min="0" 
                                                        value="0"
-                                                       disabled
                                                        required
                                                        class="quantity-input w-24 px-3 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600 disabled:bg-slate-100 disabled:cursor-not-allowed">
                                                 <input type="hidden" name="products[{{ $product->id }}][id]" value="{{ $product->id }}">
@@ -187,30 +186,27 @@
 
     <script>
         function toggleQuantityInput(productId) {
-            const checkbox = document.querySelector(`input[value="${productId}"].product-checkbox`);
-            const quantityInput = document.getElementById(`quantity_${productId}`);
-            const quantityInputMobile = document.getElementById(`quantity_mobile_${productId}`);
-            
-            if (checkbox && checkbox.checked) {
-                if (quantityInput) {
-                    quantityInput.disabled = false;
-                    quantityInput.focus();
-                }
-                if (quantityInputMobile) {
-                    quantityInputMobile.disabled = false;
-                    quantityInputMobile.focus();
-                }
-            } else {
-                if (quantityInput) {
-                    quantityInput.disabled = true;
-                    quantityInput.value = 0;
-                }
-                if (quantityInputMobile) {
-                    quantityInputMobile.disabled = true;
-                    quantityInputMobile.value = 0;
-                }
-            }
+    const checkbox = document.querySelector(`input[value="${productId}"].product-checkbox`);
+    const inputs = [
+        document.getElementById(`quantity_${productId}`),
+        document.getElementById(`quantity_mobile_${productId}`)
+    ];
+
+    inputs.forEach(input => {
+        if (!input) return;
+
+        if (checkbox.checked) {
+            input.readOnly = false;
+            input.classList.remove("bg-slate-100");
+            input.focus();
+        } else {
+            input.readOnly = true;
+            input.value = 0;
+            input.classList.add("bg-slate-100");
         }
+    });
+}
+
 
         // Form submission validation
         document.getElementById('assignForm').addEventListener('submit', function(e) {

@@ -7,6 +7,7 @@ use App\Models\department;
 use App\Models\employee;
 use App\Models\product;
 use App\Models\retail_store;
+use App\Models\warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -386,6 +387,74 @@ class StoreController extends Controller
         }
     }
 
+    /**
+     * Display page for linking warehouses to a store
+     */
+    public function linkWarehousesPage(retail_store $store)
+    {
+        // Get all warehouses and mark those already linked
+        $warehouses = warehouse::with('city')->get();
+        $linkedIds = $store->warehouses()->pluck('warehouses.id')->toArray();
+
+        return view('stores.link-warehouses', [
+            'store' => $store,
+            'warehouses' => $warehouses,
+            'linkedIds' => $linkedIds,
+        ]);
+    }
+
+    /**
+     * Link selected warehouses to the store
+     */
+    public function linkSelectedWarehouses(Request $request, retail_store $store)
+    {
+        $validated = $request->validate([
+            'warehouses' => ['required', 'array', 'min:1'],
+            'warehouses.*' => ['required', 'integer', 'exists:warehouses,id'],
+        ], [
+            'warehouses.required' => 'Please select at least one warehouse to link.',
+            'warehouses.*.exists' => 'One or more selected warehouses do not exist.',
+        ]);
+
+        $warehouseIds = $validated['warehouses'];
+
+        try {
+            
+            DB::transaction(function () use ($store, $warehouseIds) {
+                // Attach the selected warehouses without removing existing links
+                $store->warehouses()->syncWithoutDetaching($warehouseIds);
+            });
+
+            $count = count($warehouseIds);
+            $message = $count === 1 ? 'Warehouse linked successfully.' : "{$count} warehouses linked successfully.";
+
+            return redirect()->route('stores.show', $store)->with('success', $message);
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'An error occurred while linking warehouses. Please try again.');
+        }
+    }
+
+    /**
+     * Unlink a warehouse from the store
+     */
+    public function unlinkWarehouse(retail_store $store, warehouse $warehouse)
+    {
+        // Check if linked
+        if (!$store->warehouses()->where('warehouses.id', $warehouse->id)->exists()) {
+            return back()->with('error', 'This warehouse is not linked to the store.');
+        }
+
+        try {
+            DB::transaction(function () use ($store, $warehouse) {
+                $store->warehouses()->detach($warehouse->id);
+            });
+
+            return redirect()->route('stores.show', $store)->with('success', 'Warehouse unlinked successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred while unlinking the warehouse. Please try again.');
+        }
+    }
+
     public function removeManager(retail_store $store)
     {
         if (!$store->manager_id) {
@@ -432,11 +501,22 @@ class StoreController extends Controller
      */
     public function assignProductsPage(retail_store $store, Request $request)
     {
-        // Get products not already assigned to this store
+        // Get products not already assigned to this store and present in linked warehouses
         $assignedProductIds = $store->products()->pluck('products.id')->toArray();
-        
-        $query = product::query();
-        
+
+        // Get warehouses linked to this store
+        $warehouseIds = $store->warehouses()->pluck('warehouses.id')->toArray();
+
+        // Build query: products that exist in any of the linked warehouses
+        if (!empty($warehouseIds)) {
+            $query = product::whereHas('warehouses', function ($q) use ($warehouseIds) {
+                $q->whereIn('warehouses.id', $warehouseIds);
+            });
+        } else {
+            // No linked warehouses -> no products available for assignment
+            $query = product::whereRaw('0 = 1');
+        }
+
         if (!empty($assignedProductIds)) {
             $query->whereNotIn('id', $assignedProductIds);
         }
@@ -500,6 +580,26 @@ class StoreController extends Controller
         }
 
         $productIds = array_column($selectedProducts, 'id');
+
+        // Ensure store is linked to warehouses and selected products exist in linked warehouses
+        $warehouseIds = $store->warehouses()->pluck('warehouses.id')->toArray();
+        if (empty($warehouseIds)) {
+            return back()
+                ->withInput()
+                ->with('error', 'This store is not linked to any warehouse. Please link at least one warehouse before assigning products.');
+        }
+
+        $availableProductIds = product::whereHas('warehouses', function ($q) use ($warehouseIds) {
+            $q->whereIn('warehouses.id', $warehouseIds);
+        })->pluck('id')->toArray();
+
+        $notAllowed = array_diff($productIds, $availableProductIds);
+        if (!empty($notAllowed)) {
+            $names = product::whereIn('id', $notAllowed)->pluck('name')->implode(', ');
+            return back()
+                ->withInput()
+                ->with('error', "The following products are not available in the linked warehouse(s): {$names}.");
+        }
 
         // Check if any products are already assigned to this store
         $assignedProductIds = $store->products()->whereIn('products.id', $productIds)->pluck('products.id')->toArray();

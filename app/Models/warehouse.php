@@ -31,4 +31,10 @@ class warehouse extends Model
                     ->withPivot('amount')
                     ->withTimestamps();
     }
+
+    public function stores()
+    {
+        return $this->belongsToMany(retail_store::class, 'store_warehouse')
+                    ->withTimestamps();
+    }
 }
