@@ -3,7 +3,7 @@
         Add customer
     </x-slot>
 
-    <form method="POST" action="/customers">
+    <form method="POST" action="/customers" enctype="multipart/form-data">
         @csrf
 
         <div class="space-y-12">
@@ -11,6 +11,12 @@
                 <h2 class="text-base font-semibold leading-7 text-gray-900">Enter Personal Information:</h2>
 
                 <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+
+                    <div>
+                        <x-form.label for="avatar">Avatar Photo</x-form.label>
+                        <x-form.input type="file" name="avatar" id="avatar" accept="image/*" value="{{ old('avatar') }}" />
+                        <x-form.error name="avatar" />
+                    </div>
                     <div>
                         <x-form.label for="FirstName">First name</x-form.label>
                         <x-form.input type="text" name="FirstName" id="FirstName" value="{{ old('FirstName') }}" />
@@ -65,6 +71,23 @@
                         </x-form.select>
                         <x-form.error name="customer_type_id" />
                     </div>
+
+                    @can('manage')
+                    <!-- State -->
+                    <div>
+                        <x-form.label for="customer_state_id">Customer State</x-form.label>
+                        <x-form.select name="customer_state_id" id="customer_state_id">
+                            <option value="">Select State</option>
+                            @foreach ($states as $state)
+                                <option value="{{ $state->id }}" 
+                                    {{ old('customer_state_id') == $state->id ? 'selected' : '' }}>
+                                    {{ $state->StateName }}
+                                </option>
+                            @endforeach
+                        </x-form.select>
+                        <x-form.error name="customer_type_id" />
+                    </div>
+                    @endcan
                 </div>
             </div>
         </div>

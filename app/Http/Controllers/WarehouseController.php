@@ -2,54 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\warehouse;
-use App\Models\employee;
+use App\Models\city;
 use App\Models\department;
+use App\Models\employee;
 use App\Models\product;
 use App\Models\retail_store;
+use App\Models\warehouse;
 use Illuminate\Http\Request;
-use App\Models\city;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class WarehouseController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-     public function index(Request $request)
-{
-    $cities = city::all(); // all cities for the dropdown
+    public function index(Request $request)
+    {
+        $cities = city::all(); // all cities for the dropdown
 
-    // Start a query on the warehouse model
-    $query = warehouse::with('city'); // eager load the related city
+        // Start a query on the warehouse model
+        $query = warehouse::with('city'); // eager load the related city
 
-    // Search by warehouse name, city name, or phone
-    if ($search = $request->input('search')) {
-        $query->where(function ($q) use ($search) {
-            $q->where('WarehouseName', 'like', "%{$search}%")
-              ->orWhere('Phone', 'like', "%{$search}%")
-              ->orWhereHas('city', function ($q2) use ($search) {
-                  $q2->where('Name', 'like', "%{$search}%");
-              });
-        });
+        // Search by warehouse name, city name, or phone
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('WarehouseName', 'like', "%{$search}%")
+                    ->orWhere('Phone', 'like', "%{$search}%")
+                    ->orWhereHas('city', function ($q2) use ($search) {
+                        $q2->where('Name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Filter by city if provided
+        if ($cityId = $request->input('city')) {
+            $query->where('city_id', $cityId);
+        }
+
+        // Paginate results
+        $warehouses = $query->paginate(10)->withQueryString();
+
+        // Return the view with stores and cities
+        return view('warehouses.index', [
+            'warehouses' => $warehouses,
+            'cities' => $cities,
+        ]);
     }
 
-    // Filter by city if provided
-    if ($cityId = $request->input('city')) {
-        $query->where('city_id', $cityId);
-    }
-
-    // Paginate results
-    $warehouses = $query->paginate(10)->withQueryString();
-
-    // Return the view with stores and cities
-    return view('warehouses.index', [
-        'warehouses' => $warehouses,
-        'cities' => $cities,
-    ]);
-}
-
-   public function create()
+    public function create()
     {
         return view('warehouses.create');
     }
@@ -59,23 +60,36 @@ class WarehouseController extends Controller
      */
     public function store(Request $request)
     {
-        //validate
-        $attributes=$request->validate(
+        // validate
+        $attributes = $request->validate(
             [
-                'WarehouseName'=>['required','min:5'],
-                'phone'=>['required','size:10'],
-                'Address'=>['required','min:10'],
-                'city_id'=>['required']
+                'WarehouseName' => ['required', 'min:5'],
+                'phone' => ['required', 'size:10'],
+                'Address' => ['required', 'min:10'],
+                'city_id' => ['required'],
+                'Brochure' => ['nullable', 'file', 'mimes:pdf'], // max 2MB
             ]
         );
-        //dd($attributes);
 
-        //store
-        warehouse::create($attributes);
+        // handle file upload
+        if ($request->hasFile('Brochure')) {
+            $brochure_url = $request->file('Brochure')->store('brochures', 'public'); // store in 'storage/app/public/brochures'
+        }
 
-        //redirect
+        // store
+        warehouse::create(
+            [
+                'WarehouseName' => request('WarehouseName'),
+                'Phone' => request('phone'),
+                'Address' => request('Address'),
+                'city_id' => request('city_id'),
+                'Brochure_url' => $brochure_url ?? null,
+
+            ]
+        );
+
+        // redirect
         return redirect('/');
-
 
     }
 
@@ -84,38 +98,52 @@ class WarehouseController extends Controller
      */
     public function show(warehouse $warehouse)
     {
-         $warehouse->load(['city', 'manager.person', 'products']);
-         return view('warehouses.show', ['warehouse' => $warehouse]);
+        $warehouse->load(['city', 'manager.person', 'products']);
+
+        return view('warehouses.show', ['warehouse' => $warehouse]);
     }
 
-
-    public function edit(warehouse $warehouse){
-          $Cities = city::all();
+    public function edit(warehouse $warehouse)
+    {
+        $Cities = city::all();
 
         return view('warehouses.edit', [
             'Cities' => $Cities,
             'warehouse' => $warehouse]);
     }
+
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, warehouse $warehouse)
     {
         $request->validate([
-        'WarehouseName' => ['required', 'min:5'],
-        'phone'      => ['required', 'size:10'],
-        'address'    => ['required', 'min:10'],
-        'city_id'    => ['required', 'exists:cities,id'],
-    ]);
+            'WarehouseName' => ['required', 'min:5'],
+            'phone' => ['required', 'size:10'],
+            'address' => ['required', 'min:10'],
+            'city_id' => ['required', 'exists:cities,id'],
+            'Brochure' => ['nullable', 'file', 'mimes:pdf'], // max 2MB
 
-    $warehouse->update([
-        'WarehouseName' => $request->WarehouseName,
-        'Phone'     => $request->phone,
-        'Address'   => $request->address,
-        'city_id'   => $request->city_id,
-    ]);
+        ]);
 
-    return redirect("/warehouses/{$warehouse->id}")->with('success', 'warehouse updated successfully!');
+        // handle file upload
+        if ($request->hasFile('Brochure')) {
+            // Delete old brochure if exists
+            if ($warehouse->Brochure_url && Storage::disk('public')->exists($warehouse->Brochure_url)) {
+                Storage::disk('public')->delete($warehouse->Brochure_url);
+            }
+            $brochure_url = $request->file('Brochure')->store('brochures', 'public'); // store in 'storage/app/public/brochures'
+        }
+
+        $warehouse->update([
+            'WarehouseName' => $request->WarehouseName,
+            'Phone' => $request->phone,
+            'Address' => $request->address,
+            'city_id' => $request->city_id,
+            'Brochure_url' => $brochure_url ?? $warehouse->Brochure_url,
+        ]);
+
+        return redirect("/warehouses/{$warehouse->id}")->with('success', 'warehouse updated successfully!');
     }
 
     /**
@@ -123,10 +151,24 @@ class WarehouseController extends Controller
      */
     public function destroy(warehouse $warehouse)
     {
-        //authenticat
+        // authenticat
 
         $warehouse->delete();
+
         return redirect('/warehouses');
+    }
+
+    public function download(warehouse $warehouse)
+    {
+        
+        if (! $warehouse->Brochure_url || ! Storage::disk('public')->exists($warehouse->Brochure_url)) {
+            return redirect()->back()->with('error', 'Brochure not found.');
+        }
+
+        return response()->download(
+            storage_path('app/public/'.$warehouse->Brochure_url),
+            $warehouse->WarehouseName.'_Brochure.pdf'
+        );
     }
 
     public function listEmployees(warehouse $warehouse)
@@ -230,7 +272,7 @@ class WarehouseController extends Controller
 
         if ($alreadyAssignedToThisWarehouse->isNotEmpty()) {
             $names = $alreadyAssignedToThisWarehouse->map(function ($emp) {
-                return $emp->person->FirstName . ' ' . $emp->person->LastName;
+                return $emp->person->FirstName.' '.$emp->person->LastName;
             })->implode(', ');
 
             return back()
@@ -245,7 +287,7 @@ class WarehouseController extends Controller
 
         if ($alreadyAssigned->isNotEmpty()) {
             $names = $alreadyAssigned->map(function ($emp) {
-                return $emp->person->FirstName . ' ' . $emp->person->LastName;
+                return $emp->person->FirstName.' '.$emp->person->LastName;
             })->implode(', ');
 
             return back()
@@ -255,12 +297,12 @@ class WarehouseController extends Controller
 
         // Verify employees have the correct roles (employee or marketer)
         $invalidRoles = $employees->filter(function ($emp) {
-            return !in_array($emp->emp_role->RoleName, ['employee', 'marketer']);
+            return ! in_array($emp->emp_role->RoleName, ['employee', 'marketer']);
         });
 
         if ($invalidRoles->isNotEmpty()) {
             $names = $invalidRoles->map(function ($emp) {
-                return $emp->person->FirstName . ' ' . $emp->person->LastName . ' (' . $emp->emp_role->RoleName . ')';
+                return $emp->person->FirstName.' '.$emp->person->LastName.' ('.$emp->emp_role->RoleName.')';
             })->implode(', ');
 
             return back()
@@ -278,8 +320,8 @@ class WarehouseController extends Controller
             });
 
             $count = count($employeeIds);
-            $message = $count === 1 
-                ? 'Employee assigned successfully.' 
+            $message = $count === 1
+                ? 'Employee assigned successfully.'
                 : "{$count} employees assigned successfully.";
 
             return redirect()->route('warehouses.employees', $warehouse)
@@ -295,8 +337,8 @@ class WarehouseController extends Controller
     {
         // Get all employees with manager role
         $allManagers = employee::whereHas('emp_role', function ($q) {
-                $q->where('RoleName', 'manager');
-            })
+            $q->where('RoleName', 'manager');
+        })
             ->with(['person', 'emp_role'])
             ->get();
 
@@ -313,11 +355,11 @@ class WarehouseController extends Controller
 
         // Filter out already assigned managers, but include current manager if exists
         $managers = $allManagers->filter(function ($manager) use ($assignedManagerIds, $warehouse) {
-            return !in_array($manager->id, $assignedManagerIds) || $manager->id === $warehouse->manager_id;
+            return ! in_array($manager->id, $assignedManagerIds) || $manager->id === $warehouse->manager_id;
         });
 
         $currentManager = $warehouse->manager;
-
+        //dd($managers);
         return view('warehouses.assign-manager', [
             'warehouse' => $warehouse,
             'managers' => $managers,
@@ -342,7 +384,7 @@ class WarehouseController extends Controller
 
         // Verify the employee has manager role
         $manager = employee::with(['person', 'emp_role'])->findOrFail($managerId);
-        
+
         if ($manager->emp_role->RoleName !== 'manager') {
             return back()
                 ->withInput()
@@ -384,7 +426,7 @@ class WarehouseController extends Controller
 
     public function removeManager(warehouse $warehouse)
     {
-        if (!$warehouse->manager_id) {
+        if (! $warehouse->manager_id) {
             return back()->with('error', 'This warehouse does not have a manager assigned.');
         }
 
@@ -430,10 +472,10 @@ class WarehouseController extends Controller
     {
         // Get products not already assigned to this warehouse
         $assignedProductIds = $warehouse->products()->pluck('products.id')->toArray();
-        
+
         $query = product::query();
-        
-        if (!empty($assignedProductIds)) {
+
+        if (! empty($assignedProductIds)) {
             $query->whereNotIn('id', $assignedProductIds);
         }
 
@@ -464,8 +506,8 @@ class WarehouseController extends Controller
         foreach ($productCheckboxes as $productId) {
             if (isset($productsData[$productId]) && isset($productsData[$productId]['quantity'])) {
                 $selectedProducts[$productId] = [
-                    'id' => (int)$productId,
-                    'quantity' => (int)$productsData[$productId]['quantity']
+                    'id' => (int) $productId,
+                    'quantity' => (int) $productsData[$productId]['quantity'],
                 ];
             }
         }
@@ -499,8 +541,9 @@ class WarehouseController extends Controller
 
         // Check if any products are already assigned to this warehouse
         $assignedProductIds = $warehouse->products()->whereIn('products.id', $productIds)->pluck('products.id')->toArray();
-        if (!empty($assignedProductIds)) {
+        if (! empty($assignedProductIds)) {
             $assignedProducts = product::whereIn('id', $assignedProductIds)->pluck('name')->implode(', ');
+
             return back()
                 ->withInput()
                 ->with('error', "The following products are already assigned to this warehouse: {$assignedProducts}.");
@@ -516,8 +559,8 @@ class WarehouseController extends Controller
             });
 
             $count = count($selectedProducts);
-            $message = $count === 1 
-                ? 'Product assigned successfully.' 
+            $message = $count === 1
+                ? 'Product assigned successfully.'
                 : "{$count} products assigned successfully.";
 
             return redirect()->route('warehouses.products', $warehouse)
@@ -535,7 +578,7 @@ class WarehouseController extends Controller
     public function updateProductQuantity(Request $request, warehouse $warehouse, product $product)
     {
         // Verify product is assigned to this warehouse
-        if (!$warehouse->products()->where('products.id', $product->id)->exists()) {
+        if (! $warehouse->products()->where('products.id', $product->id)->exists()) {
             return back()
                 ->with('error', 'This product is not assigned to this warehouse.');
         }
@@ -555,7 +598,7 @@ class WarehouseController extends Controller
         try {
             DB::transaction(function () use ($warehouse, $product, $validated) {
                 $warehouse->products()->updateExistingPivot($product->id, [
-                    'amount' => $validated['quantity']
+                    'amount' => $validated['quantity'],
                 ]);
             });
 
@@ -573,7 +616,7 @@ class WarehouseController extends Controller
     public function removeProduct(warehouse $warehouse, product $product)
     {
         // Verify product is assigned to this warehouse
-        if (!$warehouse->products()->where('products.id', $product->id)->exists()) {
+        if (! $warehouse->products()->where('products.id', $product->id)->exists()) {
             return back()
                 ->with('error', 'This product is not assigned to this warehouse.');
         }

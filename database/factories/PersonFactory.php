@@ -23,7 +23,7 @@ class PersonFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'phone_num' => $this->faker->optional()->phoneNumber(),
             'BirthDate' => $this->faker->date(),
-            'avatar_url' => '/img/profile.png',
+            'avatar_url' => 'avatars/profile.png',
             
         ];
     }

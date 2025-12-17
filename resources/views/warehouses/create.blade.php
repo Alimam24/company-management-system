@@ -3,7 +3,7 @@
         Add Warehouse
     </x-slot>
 
-    <form method="POST" action="/warehouses">
+    <form method="POST" action="/warehouses" enctype="multipart/form-data">
         @csrf
 
         <div class="space-y-12">
@@ -39,6 +39,11 @@
                         <x-form.input type="text" name="Address" id="Address" />
                         <x-form.error name="Address" />
                     </div>
+
+                    <div>
+                        <x-form.label for="Brochure">Warehouse Brochure</x-form.label>
+                        <x-form.input type="file" name="Brochure" id="Brochure" accept="application/pdf"/>
+                        <x-form.error name="Brochure" />
                     
                 </div>
 

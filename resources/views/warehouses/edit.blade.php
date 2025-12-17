@@ -3,7 +3,7 @@
         Edit Retail warehouse: {{ $warehouse->WarehouseName }}
     </x-slot>
 
-    <form method="POST" action="/warehouses/{{ $warehouse->id }}">
+    <form method="POST" action="/warehouses/{{ $warehouse->id }}" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
 
@@ -64,6 +64,13 @@
                             placeholder="Enter warehouse address"
                         />
                         <x-form.error name="address" />
+                    </div>
+
+
+                    <div>
+                        <x-form.label for="Brochure">Warehouse Brochure</x-form.label>
+                        <x-form.input type="file" name="Brochure" id="Brochure" accept="application/pdf"/>
+                        <x-form.error name="Brochure" />
                     </div>
 
                 </div>

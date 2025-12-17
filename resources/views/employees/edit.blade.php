@@ -3,7 +3,7 @@
         Edit Employee: {{ $employee->person->FirstName . ' ' . $employee->person->LastName }}
     </x-slot>
 
-    <form method="POST" action="/employees/{{ $employee->id }}">
+    <form method="POST" action="/employees/{{ $employee->id }} " enctype="multipart/form-data">
         @csrf
         @method('PATCH')
 
@@ -12,6 +12,13 @@
                 <h2 class="text-base font-semibold leading-7 text-gray-900">Personal Information</h2>
 
                 <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+
+                    <div>
+                        <x-form.label for="avatar">Avatar Photo</x-form.label>
+                        <x-form.input type="file" name="avatar" id="avatar" accept="image/*" />
+                        <x-form.error name="avatar" />
+                    </div>
+
                     <!-- First Name -->
                     <div>
                         <x-form.label for="FirstName">First Name</x-form.label>
@@ -61,9 +68,26 @@
                     </div>
                 </div>
 
+    
+
                 <h2 class="text-base font-semibold leading-7 text-gray-900 mt-10">Employee Information</h2>
 
                 <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+                   
+                   <!-- Department -->
+                    <div>
+                        <x-form.label for="dept_id">Department</x-form.label>
+                        <x-form.select name="dept_id" id="dept_id">
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept->id }}" @selected($employee->department_id == $dept->id)>
+                                    {{ $dept->DeptName }}
+                                </option>
+                            @endforeach
+                        </x-form.select>
+                        <x-form.error name="dept_id" />
+                    </div>
+                   
+                    @can('manage')
                     <!-- Role -->
                     <div>
                         <x-form.label for="emp_role_id">Role</x-form.label>
@@ -76,19 +100,9 @@
                         </x-form.select>
                         <x-form.error name="emp_role_id" />
                     </div>
+                    @endcan
 
-                    <!-- Department -->
-                    <div>
-                        <x-form.label for="dept_id">Department</x-form.label>
-                        <x-form.select name="dept_id" id="dept_id">
-                            @foreach ($departments as $dept)
-                                <option value="{{ $dept->id }}" @selected($employee->department_id == $dept->id)>
-                                    {{ $dept->DeptName }}
-                                </option>
-                            @endforeach
-                        </x-form.select>
-                        <x-form.error name="dept_id" />
-                    </div>
+                    
 
                     <!-- State -->
                     <div>
@@ -102,6 +116,7 @@
                         </x-form.select>
                         <x-form.error name="emp_state_id" />
                     </div>
+                    
 
                 </div>
             </div>

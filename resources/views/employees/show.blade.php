@@ -11,8 +11,10 @@
                 <div class="px-6 pb-6">
                     <!-- Profile Image -->
                     <div class="flex flex-col sm:flex-row sm:items-end mb-6">
-                        <img src={{ $employee->person->avatar_url }} alt="Employee Photo"
-                            class="w-32 h-32 rounded-full border-4 border-white shadow-lg">
+                        <img src="{{ $employee->person->avatar_url
+                            ? asset('storage/' . $employee->person->avatar_url)
+                            : asset('storage/avatars/profile.png') }}"
+                            alt="Employee Photo" class="w-32 h-32 rounded-full border-4 border-white shadow-lg">
                         <div class="mt-4 sm:mt-0 sm:ml-6 flex-1">
                             <h1 class="text-3xl font-bold text-gray-900">
                                 {{ $employee->person->FirstName . ' ' . $employee->person->LastName }}</h1>
@@ -56,13 +58,23 @@
                                 <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                                    </path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14v7m-4 0h8a2 2 0 002-2v-5a2 2 0 00-2-2H8a2 2 0 00-2 2v5a2 2 0 002 2z" />
                                 </svg>
-                                <span>San Francisco, CA</span>
+                                <span>{{ $employee->person->NationalId }}</span>
                             </div>
+
+
+                            <div class="flex items-center text-gray-700">
+                                <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>{{ $employee->person->BirthDate }}</span>
+                            </div>
+
+
+
                         </div>
 
                         <div class="space-y-4">
@@ -129,16 +141,13 @@
                             Edit
                         </a>
 
-                        <!-- Download Resume -->
-                        <button
+
+                        @can('manage')
+                        <a href={{ route('employees.change-role', $employee) }}
                             class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-200 active:bg-gray-300 transition-all duration-150">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-                            </svg>
-                            Download
-                        </button>
+                            change Role
+                        </a>
+                        @endcan
 
                         <!-- Delete -->
                         <form method="POST" action="/employees/{{ $employee->id }}">
@@ -153,7 +162,7 @@
                                 Remove
                             </button>
                         </form>
-                    </div>
+                    
                 </div>
             </div>
         </div>

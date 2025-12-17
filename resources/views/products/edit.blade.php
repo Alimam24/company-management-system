@@ -3,7 +3,7 @@
         Edit Product
     </x-slot>
 
-    <form method="POST" action="/products/{{ $product->id }}">
+    <form method="POST" action="/products/{{ $product->id }}" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
 
@@ -12,6 +12,13 @@
                 <h2 class="text-base font-semibold leading-7 text-gray-900">Update product details:</h2>
 
                 <div class="mt-5 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+
+                    <div>
+                        <x-form.label for="avatar">Product Photo</x-form.label>
+                        <x-form.input type="file" name="avatar" id="avatar" accept="image/*" />
+                        <x-form.error name="avatar" />
+                    </div>
+
 
                     <!-- Product Name -->
                     <div>

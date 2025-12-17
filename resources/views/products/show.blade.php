@@ -8,7 +8,9 @@
             <!-- Header -->
             <div class="flex items-center gap-6 border-b border-gray-200 pb-6">
                 <!-- Product Image -->
-                <img src="{{ $product->avatar_url }}" alt="{{ $product->name }}"
+                <img  src="{{ $product->avatar_url 
+                 ? asset('storage/' . $product->avatar_url) 
+                 : asset('img/profile.png') }}"alt="{{ $product->name }}"
                     class="w-32 h-32 rounded-lg object-cover border">
 
                 <!-- Product Basic Info -->
@@ -92,7 +94,7 @@
                     class="bg-purple-700 text-white hover:bg-purple-800 px-4 py-2 rounded-lg font-medium">
                     Edit Product
                 </a>
-
+                @can('manage')
                 <!-- Delete -->
                 <form method="POST" action="/products/{{ $product->id }}">
                     @csrf
@@ -102,6 +104,7 @@
                         Delete Product
                     </button>
                 </form>
+                @endcan
             </div>
         </div>
     </div>

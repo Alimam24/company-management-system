@@ -27,21 +27,22 @@ class DatabaseSeeder extends Seeder
             EmpStateSeeder::class,
             EmpRoleSeeder::class,
             CustomerTypeSeeder::class,
+            CustomerStateSeeder::class,
             DepartmentSeeder::class,
-            CitiesSeeder::class
+            CitiesSeeder::class,
         ]);
 
           // Seed persons
         person::factory()->count(20)->create();
 
         // Seed employees
-        employee::factory()->count(10)->create();
+        //employee::factory()->count(10)->create();
 
         // Seed customers
         customer::factory()->count(10)->create();
 
         // Seed users
-        user::factory()->count(10)->create();
+        //user::factory()->count(10)->create();
 
         // Seed stores
         retail_store::factory()->count(20)->create();
@@ -51,5 +52,6 @@ class DatabaseSeeder extends Seeder
 
         //seed products
         product::factory()->count(20)->create();
+    
     }
 }

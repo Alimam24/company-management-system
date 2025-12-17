@@ -18,5 +18,8 @@ Route::middleware(['dept:Human resources'])
         Route::get('/{employee}', [EmployeeController::class, 'show'])->name('show');
         Route::delete('/{employee}', [EmployeeController::class, 'destroy'])->name('destroy');
 
+        Route::get('/{employee}/change-role', [EmployeeController::class, 'changeRole'])->name('change-role')->can('manage');
+        Route::patch('/{employee}/change-role', [EmployeeController::class, 'updateRole'])->name('update-role')->can('manage');
+
     });
 

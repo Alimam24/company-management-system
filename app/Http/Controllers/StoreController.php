@@ -10,6 +10,7 @@ use App\Models\retail_store;
 use App\Models\warehouse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class StoreController extends Controller
 {
@@ -51,7 +52,11 @@ class StoreController extends Controller
 
     public function create()
     {
-        return view('stores.create');
+        $cities = city::all();
+
+        return view('stores.create', [
+            'cities' => $cities,
+        ]);
     }
 
     /**
@@ -65,13 +70,25 @@ class StoreController extends Controller
                 'StoreName' => ['required', 'min:5'],
                 'phone' => ['required', 'size:10'],
                 'Address' => ['required', 'min:10'],
-                'city' => ['required'],
+                'city_id' => ['required', 'exists:cities,id'],
+                'Brochure' => ['nullable', 'file', 'mimes:pdf'], // max 2MB
             ]
         );
-        // dd($attributes);
 
+        // handle file upload
+        if ($request->hasFile('Brochure')) {
+            $brochure_url = $request->file('Brochure')->store('brochures', 'public'); // store in 'storage/app/public/brochures'
+        }
         // store
-        retail_store::create($attributes);
+        retail_store::create(
+            [
+                'StoreName' => request('StoreName'),
+                'Phone' => request('phone'),
+                'Address' => request('Address'),
+                'city_id' => request('city_id'),
+                'Brochure_url' => $brochure_url ?? null,
+            ]
+        );
 
         // redirect
         return redirect('/');
@@ -84,6 +101,7 @@ class StoreController extends Controller
     public function show(retail_store $store)
     {
         $store->load(['city', 'manager.person', 'products']);
+
         return view('stores.show', ['store' => $store]);
     }
 
@@ -102,18 +120,29 @@ class StoreController extends Controller
      */
     public function update(Request $request, retail_store $store)
     {
+        // validate
         $request->validate([
             'store_name' => ['required', 'min:5'],
             'phone' => ['required', 'size:10'],
             'address' => ['required', 'min:10'],
             'city_id' => ['required', 'exists:cities,id'],
+            'Brochure' => ['nullable', 'file', 'mimes:pdf'], // max 2MB
         ]);
 
+        // handle file upload
+        if ($request->hasFile('Brochure')) {
+            // Delete old brochure if exists
+            if ($store->Brochure_url && Storage::disk('public')->exists($store->Brochure_url)) {
+                Storage::disk('public')->delete($store->Brochure_url);
+            }
+            $brochure_url = $request->file('Brochure')->store('brochures', 'public'); // store in 'storage/app/public/brochures'
+        }
         $store->update([
             'StoreName' => $request->store_name,
             'Phone' => $request->phone,
             'Address' => $request->address,
             'city_id' => $request->city_id,
+            'Brochure_url' => $brochure_url ?? $store->Brochure_url,
         ]);
 
         return redirect("/stores/{$store->id}")->with('success', 'Store updated successfully!');
@@ -130,6 +159,18 @@ class StoreController extends Controller
 
         // redirect
         return redirect('/stores');
+    }
+
+    public function download(retail_store $store)
+    {
+        if (! $store->Brochure_url || ! Storage::disk('public')->exists($store->Brochure_url)) {
+            return redirect()->back()->with('error', 'Brochure not found.');
+        }
+
+        return response()->download(
+            storage_path('app/public/'.$store->Brochure_url),
+            $store->StoreName.'_Brochure.pdf'
+        );
     }
 
     public function listEmployees(retail_store $store)
@@ -236,7 +277,7 @@ class StoreController extends Controller
 
         if ($alreadyAssignedToThisStore->isNotEmpty()) {
             $names = $alreadyAssignedToThisStore->map(function ($emp) {
-                return $emp->person->FirstName . ' ' . $emp->person->LastName;
+                return $emp->person->FirstName.' '.$emp->person->LastName;
             })->implode(', ');
 
             return back()
@@ -251,7 +292,7 @@ class StoreController extends Controller
 
         if ($alreadyAssigned->isNotEmpty()) {
             $names = $alreadyAssigned->map(function ($emp) {
-                return $emp->person->FirstName . ' ' . $emp->person->LastName;
+                return $emp->person->FirstName.' '.$emp->person->LastName;
             })->implode(', ');
 
             return back()
@@ -261,12 +302,12 @@ class StoreController extends Controller
 
         // Verify employees have the correct roles (employee or marketer)
         $invalidRoles = $employees->filter(function ($emp) {
-            return !in_array($emp->emp_role->RoleName, ['employee', 'marketer']);
+            return ! in_array($emp->emp_role->RoleName, ['employee', 'marketer']);
         });
 
         if ($invalidRoles->isNotEmpty()) {
             $names = $invalidRoles->map(function ($emp) {
-                return $emp->person->FirstName . ' ' . $emp->person->LastName . ' (' . $emp->emp_role->RoleName . ')';
+                return $emp->person->FirstName.' '.$emp->person->LastName.' ('.$emp->emp_role->RoleName.')';
             })->implode(', ');
 
             return back()
@@ -284,8 +325,8 @@ class StoreController extends Controller
             });
 
             $count = count($employeeIds);
-            $message = $count === 1 
-                ? 'Employee assigned successfully.' 
+            $message = $count === 1
+                ? 'Employee assigned successfully.'
                 : "{$count} employees assigned successfully.";
 
             return redirect()->route('stores.employees', $store)
@@ -301,8 +342,8 @@ class StoreController extends Controller
     {
         // Get all employees with manager role
         $allManagers = employee::whereHas('emp_role', function ($q) {
-                $q->where('RoleName', 'manager');
-            })
+            $q->where('RoleName', 'manager');
+        })
             ->with(['person', 'emp_role'])
             ->get();
 
@@ -318,7 +359,7 @@ class StoreController extends Controller
 
         // Filter out already assigned managers, but include current manager if exists
         $managers = $allManagers->filter(function ($manager) use ($assignedManagerIds, $store) {
-            return !in_array($manager->id, $assignedManagerIds) || $manager->id === $store->manager_id;
+            return ! in_array($manager->id, $assignedManagerIds) || $manager->id === $store->manager_id;
         });
 
         $currentManager = $store->manager;
@@ -347,7 +388,7 @@ class StoreController extends Controller
 
         // Verify the employee has manager role
         $manager = employee::with(['person', 'emp_role'])->findOrFail($managerId);
-        
+
         if ($manager->emp_role->RoleName !== 'manager') {
             return back()
                 ->withInput()
@@ -419,7 +460,7 @@ class StoreController extends Controller
         $warehouseIds = $validated['warehouses'];
 
         try {
-            
+
             DB::transaction(function () use ($store, $warehouseIds) {
                 // Attach the selected warehouses without removing existing links
                 $store->warehouses()->syncWithoutDetaching($warehouseIds);
@@ -440,7 +481,7 @@ class StoreController extends Controller
     public function unlinkWarehouse(retail_store $store, warehouse $warehouse)
     {
         // Check if linked
-        if (!$store->warehouses()->where('warehouses.id', $warehouse->id)->exists()) {
+        if (! $store->warehouses()->where('warehouses.id', $warehouse->id)->exists()) {
             return back()->with('error', 'This warehouse is not linked to the store.');
         }
 
@@ -457,7 +498,7 @@ class StoreController extends Controller
 
     public function removeManager(retail_store $store)
     {
-        if (!$store->manager_id) {
+        if (! $store->manager_id) {
             return back()->with('error', 'This store does not have a manager assigned.');
         }
 
@@ -508,7 +549,7 @@ class StoreController extends Controller
         $warehouseIds = $store->warehouses()->pluck('warehouses.id')->toArray();
 
         // Build query: products that exist in any of the linked warehouses
-        if (!empty($warehouseIds)) {
+        if (! empty($warehouseIds)) {
             $query = product::whereHas('warehouses', function ($q) use ($warehouseIds) {
                 $q->whereIn('warehouses.id', $warehouseIds);
             });
@@ -517,7 +558,7 @@ class StoreController extends Controller
             $query = product::whereRaw('0 = 1');
         }
 
-        if (!empty($assignedProductIds)) {
+        if (! empty($assignedProductIds)) {
             $query->whereNotIn('id', $assignedProductIds);
         }
 
@@ -548,8 +589,8 @@ class StoreController extends Controller
         foreach ($productCheckboxes as $productId) {
             if (isset($productsData[$productId]) && isset($productsData[$productId]['quantity'])) {
                 $selectedProducts[$productId] = [
-                    'id' => (int)$productId,
-                    'quantity' => (int)$productsData[$productId]['quantity']
+                    'id' => (int) $productId,
+                    'quantity' => (int) $productsData[$productId]['quantity'],
                 ];
             }
         }
@@ -569,7 +610,7 @@ class StoreController extends Controller
         foreach ($selectedProducts as $productId => $productData) {
             $request->validate([
                 "products.{$productId}.id" => ['required', 'integer', 'exists:products,id'],
-                "products.{$productId}.quantity" => ['required', 'integer', 'min:0'],
+                "products.{$productId}.quantity" => ['required', 'integer', 'min:1'],
             ], [
                 "products.{$productId}.id.required" => 'Invalid product selection.',
                 "products.{$productId}.id.exists" => 'One or more selected products do not exist.',
@@ -594,8 +635,9 @@ class StoreController extends Controller
         })->pluck('id')->toArray();
 
         $notAllowed = array_diff($productIds, $availableProductIds);
-        if (!empty($notAllowed)) {
+        if (! empty($notAllowed)) {
             $names = product::whereIn('id', $notAllowed)->pluck('name')->implode(', ');
+
             return back()
                 ->withInput()
                 ->with('error', "The following products are not available in the linked warehouse(s): {$names}.");
@@ -603,8 +645,9 @@ class StoreController extends Controller
 
         // Check if any products are already assigned to this store
         $assignedProductIds = $store->products()->whereIn('products.id', $productIds)->pluck('products.id')->toArray();
-        if (!empty($assignedProductIds)) {
+        if (! empty($assignedProductIds)) {
             $assignedProducts = product::whereIn('id', $assignedProductIds)->pluck('name')->implode(', ');
+
             return back()
                 ->withInput()
                 ->with('error', "The following products are already assigned to this store: {$assignedProducts}.");
@@ -620,8 +663,8 @@ class StoreController extends Controller
             });
 
             $count = count($selectedProducts);
-            $message = $count === 1 
-                ? 'Product assigned successfully.' 
+            $message = $count === 1
+                ? 'Product assigned successfully.'
                 : "{$count} products assigned successfully.";
 
             return redirect()->route('stores.products', $store)
@@ -639,7 +682,7 @@ class StoreController extends Controller
     public function updateProductQuantity(Request $request, retail_store $store, product $product)
     {
         // Verify product is assigned to this store
-        if (!$store->products()->where('products.id', $product->id)->exists()) {
+        if (! $store->products()->where('products.id', $product->id)->exists()) {
             return back()
                 ->with('error', 'This product is not assigned to this store.');
         }
@@ -659,7 +702,7 @@ class StoreController extends Controller
         try {
             DB::transaction(function () use ($store, $product, $validated) {
                 $store->products()->updateExistingPivot($product->id, [
-                    'amount' => $validated['quantity']
+                    'amount' => $validated['quantity'],
                 ]);
             });
 
@@ -677,7 +720,7 @@ class StoreController extends Controller
     public function removeProduct(retail_store $store, product $product)
     {
         // Verify product is assigned to this store
-        if (!$store->products()->where('products.id', $product->id)->exists()) {
+        if (! $store->products()->where('products.id', $product->id)->exists()) {
             return back()
                 ->with('error', 'This product is not assigned to this store.');
         }

@@ -15,6 +15,8 @@ Route::middleware(['dept:Warehouse Management'])
         Route::get('/{warehouse}/edit', [WarehouseController::class, 'edit'])->name('edit');
         Route::patch('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
 
+        Route::get('/{warehouse}/download', [WarehouseController::class, 'download'])->name('download');
+
         // Product management routes (more specific routes first)
         Route::get('/{warehouse}/products', [WarehouseController::class, 'listProducts'])
             ->name('products');
@@ -59,5 +61,5 @@ Route::middleware(['dept:Warehouse Management'])
         Route::patch('/{warehouse}', [WarehouseController::class, 'update'])->name('update');
 
         Route::get('/{warehouse}', [WarehouseController::class, 'show'])->name('show');
-        Route::delete('/{warehouse}', [WarehouseController::class, 'destroy'])->name('destroy');
+        Route::delete('/{warehouse}', [WarehouseController::class, 'destroy'])->name('destroy')->can('manage');
     });

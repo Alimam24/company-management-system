@@ -15,4 +15,6 @@ Route::middleware(['dept:Marketing & customer contact'])
         Route::patch('/{customer}', [CustomerController::class, 'update'])->name('update');
         Route::get('/{customer}', [CustomerController::class, 'show'])->name('show');
         Route::delete('/{customer}', [CustomerController::class, 'destroy'])->name('destroy');
+        Route::get('/{customer}/change-state',[CustomerController::class,'changeState'])->name('change-state')->can('manage');
+        Route::patch('/{customer}/change-state',[CustomerController::class,'updateState'])->name('update-state')->can('manage');
     });

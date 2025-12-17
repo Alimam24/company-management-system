@@ -20,5 +20,10 @@ class customer extends Model
     {
         return $this->belongsTo(customer_type::class);
     }
+
+    public function customer_state()
+    {
+        return $this->belongsTo(Customer_state::class);
+    }
     
 }

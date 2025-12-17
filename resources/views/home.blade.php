@@ -9,7 +9,7 @@
             Welcome to the Home Page 
         </p>
 
-        <div >
+        {{-- <div >
             <ul class="space-y-3 text-purple-700 font-medium">
                 <li>
                     <a href="/employees/create" class="hover:underline">
@@ -40,7 +40,7 @@
                     </a>
                 </li>
             </ul>
-        </div>
+        </div> --}}
 
     </div>
 </x-layouts.app>

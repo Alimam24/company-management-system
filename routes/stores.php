@@ -11,6 +11,12 @@ Route::middleware(['dept:Retail Store Management'])
         Route::get('/', [StoreController::class, 'index'])->name('index');
         Route::get('/create', [StoreController::class, 'create'])->name('create');
         Route::post('/', [StoreController::class, 'store'])->name('store');
+        Route::get('/{store}', [StoreController::class, 'show'])->name('show');
+        Route::get('/{store}/edit', [StoreController::class, 'edit'])->name('edit');
+        Route::patch('/{store}', [StoreController::class, 'update'])->name('update');
+        Route::delete('/{store}', [StoreController::class, 'destroy'])->name('destroy');
+
+        Route::get('/{store}/download', [StoreController::class, 'download'])->name('download');
 
         // Product management routes (more specific routes first)
         Route::get('/{store}/products', [StoreController::class, 'listProducts'])
@@ -26,12 +32,12 @@ Route::middleware(['dept:Retail Store Management'])
             ->name('products.update');
 
         Route::delete('/{store}/products/{product}', [StoreController::class, 'removeProduct'])
-            ->name('products.remove');
+            ->name('products.remove')->can('manage');
 
         // Employee management routes
         Route::get('/{store}/employees', [StoreController::class, 'listemployees'])
             ->name('employees');
-            
+
         Route::delete('/{store}/employee/{employee}', [StoreController::class, 'destroyemp'])
             ->name('employee.destroy');
 
@@ -62,9 +68,4 @@ Route::middleware(['dept:Retail Store Management'])
         Route::delete('/{store}/warehouses/{warehouse}', [StoreController::class, 'unlinkWarehouse'])
             ->name('warehouses.unlink');
 
-        Route::get('/{store}/edit', [StoreController::class, 'edit'])->name('edit');
-        Route::patch('/{store}', [StoreController::class, 'update'])->name('update');
-
-        Route::get('/{store}', [StoreController::class, 'show'])->name('show');
-        Route::delete('/{store}', [StoreController::class, 'destroy'])->name('destroy');
     });

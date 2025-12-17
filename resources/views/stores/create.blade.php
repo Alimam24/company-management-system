@@ -3,7 +3,7 @@
         Add Retail Store
     </x-slot>
 
-    <form method="POST" action="/stores">
+    <form method="POST" action="/stores" enctype="multipart/form-data">
         @csrf
 
         <div class="space-y-12">
@@ -23,16 +23,15 @@
                         <x-form.error name="phone" />
                     </div>
 
-                     <div>
-                        <x-form.label for="city">City</x-form.label>
-                        <x-form.select name="city" id="city">
-                            {{-- should dynamicly previewed leter --}}
-
-                             <option value="damascus">damascus</option>
-                              <option value="homes">homes</option>
-                               <option value="aleppo">aleppo</option>
+                    <div>
+                        <x-form.label for="city_id">City</x-form.label>
+                        <x-form.select name="city_id" id="city_id">
+                           
+                            @foreach ($cities as $city)
+                                <option value="{{ $city->id }}">{{ $city->Name }}</option>
+                            @endforeach
                         </x-form.select>
-                        <x-form.error name="city" />
+                        <x-form.error name="city_id" />
                     </div>
                     <div>
                         <x-form.label for="Address">Store address</x-form.label>
@@ -40,11 +39,19 @@
                         <x-form.error name="Address" />
                     </div>
 
-                    
+
+                    <div>
+                        <x-form.label for="Brochure">Store Brochure</x-form.label>
+                        <x-form.input type="file" name="Brochure" id="Brochure" accept="application/pdf"/>
+                        <x-form.error name="Brochure" />
+                    </div>
 
 
 
-                    
+
+
+
+
                 </div>
 
 

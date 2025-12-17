@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -54,10 +55,18 @@ class ProductController extends Controller
                 'name' => ['required', 'min:5'],
                 'price' => ['required', 'gte:0'],
                 'description' => ['required'],
+                'avatar' => ['nullable', 'image'],
             ]
         );
 
-        product::create($attributes);
+        $avatar_url = request('avatar')->store('avatars', 'public');
+
+        product::create([
+            'name' => $attributes['name'],
+            'price' => $attributes['price'],
+            'description' => $attributes['description'],
+            'avatar_url' => $avatar_url,
+        ]);
 
         return redirect('/');
     }
@@ -69,6 +78,7 @@ class ProductController extends Controller
     {
         // Eager load retail stores and warehouses with pivot data
         $product->load(['retail_stores', 'warehouses']);
+
         return view('products.show', ['product' => $product]);
     }
 
@@ -88,13 +98,28 @@ class ProductController extends Controller
                 'name' => ['required', 'min:5'],
                 'price' => ['required', 'gte:0'],
                 'description' => ['required'],
-            ]
-        );
+                'avatar' => ['nullable', 'image'],
+            ]);
+
+        // Only store a new avatar if the user uploaded one
+        if ($request->hasFile('avatar')) {
+            // Optionally delete old avatar if it exists
+            if ($product->avatar_url) {
+                Storage::disk('public')->delete($product->avatar_url);
+            }
+            // Store new avatar
+            $avatar_url = $request->file('avatar')->store('avatars', 'public');
+        } else {
+            // Keep existing avatar URL if no new file is uploaded
+            $avatar_url = $product->avatar_url;
+        }
+
         $product->update(
             [
                 'name' => request('name'),
                 'price' => request('price'),
                 'description' => request('description'),
+                'avatar_url' => $avatar_url,
 
             ]
         );

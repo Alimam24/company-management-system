@@ -16,7 +16,7 @@ Route::middleware(['dept:Product Management'])
         Route::patch('/{product}', [ProductController::class, 'update'])->name('update');
 
         Route::get('/{product}', [ProductController::class, 'show'])->name('show');
-        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy')->can('manage');
 
     });
 

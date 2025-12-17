@@ -2,8 +2,7 @@
 
 namespace App\Providers;
 use Illuminate\Database\Eloquent\Model;
-
-
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,5 +21,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::unguard();
+
+        Gate::define('manage', function ($user) {
+            return $user->employee->emp_role->RoleName === 'manager';
+        });
     }
 }

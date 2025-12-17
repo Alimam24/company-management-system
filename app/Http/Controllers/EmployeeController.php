@@ -8,8 +8,9 @@ use App\Models\emp_state;
 use App\Models\employee;
 use App\Models\person;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
+
 
 class EmployeeController extends Controller
 {
@@ -72,6 +73,7 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         // validate
         $attributes = $request->validate(
             [
@@ -83,14 +85,27 @@ class EmployeeController extends Controller
                 'BirthDate' => ['required', 'date', Rule::date()->beforeOrEqual(today()->subYears(18))],
                 'emp_role_id' => ['required', 'exists:emp_roles,id'],
                 'dept_id' => ['required', 'exists:departments,id'],
+                'avatar' => ['nullable', 'image'], // max 2MB:  'max:2048'
             ],
             [
                 'BirthDate.before_or_equal' => 'You should be above 18 years old.',
             ]
         );
 
+        $avarar_url = request('avatar')->store('avatars', 'public');
+
         // create
-        $person = person::create(Arr::except($attributes, ['emp_role_id', 'dept_id']));
+        $person = person::create(
+            [
+                'FirstName' => $attributes['FirstName'],
+                'LastName' => $attributes['LastName'],
+                'NationalId' => $attributes['NationalId'],
+                'email' => $attributes['email'],
+                'phone_num' => $attributes['phone_num'],
+                'BirthDate' => $attributes['BirthDate'],
+                'avatar_url' => $avarar_url,
+            ]
+        );
         $employee = employee::create([
             'person_id' => $person->id,
             'emp_role_id' => $attributes['emp_role_id'],
@@ -131,8 +146,6 @@ class EmployeeController extends Controller
      */
     public function update(Request $request, employee $employee)
     {
-        // authenticat
-
         // validation
         request()->validate(
             [
@@ -142,13 +155,31 @@ class EmployeeController extends Controller
                 'email' => ['required', 'email'],
                 'phone_num' => ['required', 'size:10'],
                 'BirthDate' => ['required', 'date', Rule::date()->beforeOrEqual(today()->subYears(18))],
-                'emp_role_id' => ['required', 'exists:emp_roles,id'],
+                'emp_role_id' => ['exists:emp_roles,id'],
                 'dept_id' => ['required', 'exists:departments,id'],
+                'avatar' => ['nullable', 'image'], // max 2MB:  'max:2048'
             ],
             [
                 'BirthDate.before_or_equal' => 'You should be above 18 years old.',
             ]
         );
+
+         // Only store a new avatar if the user uploaded one
+        if ($request->hasFile('avatar')) {
+            // Optionally delete old avatar if it exists
+            if ($employee->person->avatar_url) {
+                Storage::disk('public')->delete($employee->person->avatar_url);
+            }
+
+            // Store new avatar
+                $avarar_url=request('avatar')->store('avatars','public');
+
+        } else {
+            // Keep the existing avatar URL if no new file is uploaded
+            $avarar_url = $employee->person->avatar_url;
+
+        }
+
         // db record updating
         $employee->person->update([
             'FirstName' => request('FirstName'),
@@ -157,9 +188,11 @@ class EmployeeController extends Controller
             'email' => request('email'),
             'phone_num' => request('phone_num'),
             'BirthDate' => request('BirthDate'),
+            'avatar_url' => $avarar_url,
+
         ]);
         $employee->update([
-            'emp_role_id' => request('emp_role_id'),
+            'emp_role_id' => request('emp_role_id')?? '1',
             'department_id' => request('dept_id'),
         ]);
 
@@ -178,5 +211,40 @@ class EmployeeController extends Controller
 
         // redirect
         return redirect('/employees');
+    }
+
+
+
+
+    public function changeRole(employee $employee)
+    {
+        $roles = emp_role::all();
+        $departments=department::all();
+        $states=emp_state::all();
+
+        return view('employees.change-role', [
+            'employee' => $employee,
+            'roles' => $roles,
+            'departments' => $departments,
+            'states'=>$states,
+        ]);
+    }
+
+    public function updateRole(Request $request, employee $employee)
+    {
+        // Validate the request
+        $request->validate([
+            'emp_role_id' => ['required', 'exists:emp_roles,id'],
+            'department_id' => request('dept_id'),
+        ]);
+
+        // Update the employee's role
+        $employee->update([
+            'emp_role_id' => $request->input('emp_role_id',$employee->emp_role_id),
+            'department_id' => $request->input('department_id', $employee->department_id), // Keep the same department if not provided
+        ]);
+
+        // Redirect back to the employee's profile with a success message
+        return redirect()->route('employees.show', $employee)->with('success', 'Employee role updated successfully.');
     }
 }

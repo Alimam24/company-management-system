@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignIdFor(department::class);
             $table->nullableMorphs('assignable');
             $table->foreignIdFor(emp_state::class)->default(1);
-            $table->foreignIdFor(emp_role::class);
+            $table->foreignIdFor(emp_role::class)->default(1);
 
 
             
