@@ -21,5 +21,6 @@ Route::middleware(['dept:Human resources'])
         Route::get('/{employee}/change-role', [EmployeeController::class, 'changeRole'])->name('change-role')->can('manage');
         Route::patch('/{employee}/change-role', [EmployeeController::class, 'updateRole'])->name('update-role')->can('manage');
 
+
     });
 
