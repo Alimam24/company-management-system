@@ -108,6 +108,7 @@ class CustomerController extends Controller
      */
     public function show(customer $customer)
     {
+        $customer->load(['marketingEmployee.employee.person', 'marketingEmployee.employee.department', 'offers']);
         return view('customers.show', ['customer' => $customer]);
     }
 

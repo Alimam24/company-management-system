@@ -22,6 +22,7 @@
                                 <x-nav-link href="/departments" :active="request()->is('departments*')" type="a">Departments</x-nav-link>
                             @elseif($department_id === 3)
                                 <x-nav-link href="/customers" :active="request()->is('customers*')" type="a">Customers</x-nav-link>
+                                <x-nav-link href="/marketing/offers" :active="request()->is('marketing*')" type="a">Offers</x-nav-link>
                             @elseif($department_id === 4)
                                 <x-nav-link href="/stores" :active="request()->is('stores*')" type="a">Stores</x-nav-link>
                             @elseif($department_id === 5)

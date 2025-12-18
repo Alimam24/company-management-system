@@ -97,7 +97,83 @@
                         </div>
                     </div>
 
+                    <!-- Marketing Employee Assignment (VIP Only) -->
+                    @if ($customer->customer_type->TypeName === 'VIP')
+                        <div class="mb-8 pt-6 border-t border-gray-200">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-xl font-semibold text-gray-900">Marketing Employee</h2>
+                                <a href="{{ route('marketing.assign-employee', $customer) }}"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-700 text-white text-sm font-medium rounded-md shadow-sm hover:bg-purple-800 transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                    {{ $customer->marketingEmployee ? 'Change Assignment' : 'Assign Employee' }}
+                                </a>
+                            </div>
 
+                            @if ($customer->marketingEmployee && $customer->marketingEmployee->employee)
+                                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                    <div class="flex items-center gap-4">
+                                        <img src="{{ $customer->marketingEmployee->employee->person->avatar_url
+                                            ? asset('storage/' . $customer->marketingEmployee->employee->person->avatar_url)
+                                            : asset('storage/avatars/profile.png') }}"
+                                            alt="Marketing Employee"
+                                            class="w-12 h-12 rounded-full object-cover">
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-900">
+                                                {{ $customer->marketingEmployee->employee->person->FirstName . ' ' . $customer->marketingEmployee->employee->person->LastName }}
+                                            </p>
+                                            <p class="text-sm text-gray-600">{{ $customer->marketingEmployee->employee->person->email }}</p>
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                {{ $customer->marketingEmployee->employee->department->DeptName }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                                    <p class="text-gray-600 text-sm">No marketing employee assigned</p>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    <!-- Marketing Offers -->
+                    <div class="mb-8 pt-6 border-t border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Marketing Offers</h2>
+
+                        @if ($customer->offers->count() > 0)
+                            <div class="space-y-3">
+                                @foreach ($customer->offers as $offer)
+                                    <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-gray-900">{{ $offer->Title }}</h3>
+                                                @if ($offer->Description)
+                                                    <p class="text-sm text-gray-600 mt-1">{{ $offer->Description }}</p>
+                                                @endif
+                                                <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                                    <span>Assigned: {{ \Carbon\Carbon::parse($offer->pivot->AssignedDate)->format('M d, Y') }}</span>
+                                                    @if ($offer->EndDate)
+                                                        <span>Valid until: {{ $offer->EndDate->format('M d, Y') }}</span>
+                                                    @endif
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $offer->IsActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                                                        {{ $offer->IsActive ? 'Active' : 'Inactive' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                                <p class="text-gray-600 text-sm">No offers assigned to this customer</p>
+                            </div>
+                        @endif
+                    </div>
 
                     <div class="flex flex-wrap items-center justify-end gap-2 pt-5 border-t border-gray-100">
                         <!-- Edit Profile -->

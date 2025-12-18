@@ -25,5 +25,17 @@ class customer extends Model
     {
         return $this->belongsTo(Customer_state::class);
     }
+
+    public function marketingEmployee()
+    {
+        return $this->hasOne(MarketingEmployeeCustomer::class)->with('employee');
+    }
+
+    public function offers()
+    {
+        return $this->belongsToMany(Offer::class, 'customer_offer')
+            ->withPivot('AssignedDate')
+            ->withTimestamps();
+    }
     
 }

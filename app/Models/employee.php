@@ -39,5 +39,9 @@ class employee extends Model
         return $this->morphTo();
     }
 
+    public function assignedVIPCustomers()
+    {
+        return $this->hasMany(MarketingEmployeeCustomer::class)->with('customer');
+    }
     
 }
