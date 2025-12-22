@@ -20,7 +20,7 @@
                 @foreach ($products as $product)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <img src={{ $product->avatar_url }} class="w-12 h-12 object-cover rounded" />
+                            <img src={{ asset($product->avatar_url) }} class="w-12 h-12 object-cover rounded" />
                         </td>
                         <td class="px-4 py-3 font-medium text-gray-900">{{ $product->name }}</td>
                         <td class="px-4 py-3 text-gray-700">${{ $product->price }}</td>
@@ -29,6 +29,7 @@
                                 class="text-blue-600 hover:text-blue-800 font-medium">View</a>
                             <a href="/products/{{ $product->id }}/edit"
                                 class="text-yellow-600 hover:text-yellow-800 font-medium">Edit</a>
+                            @can('manage')
                             <form action="/products/{{ $product->id }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
@@ -36,6 +37,7 @@
                                     Delete
                                 </button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                 @endforeach

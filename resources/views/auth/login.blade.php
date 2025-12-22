@@ -9,7 +9,7 @@
 
             <form class="space-y-5" method="POST" action="/login">
                 @CSRF
-                <!-- Email -->
+                <!-- UserName -->
                 <div>
                     <x-auth-form.label for="UserName">UserName</x-auth-form.label>
                     <x-auth-form.input type="text" name="UserName" id="UserName" placeholder="Enter your email" />
@@ -31,7 +31,7 @@
                         <input type="checkbox" class="rounded border-gray-300">
                         <span>Remember me</span>
                     </label>
-                    <a href="#" class="text-sm text-purple-900 hover:underline">
+                    <a href="/password-reset-requests/create" class="text-sm text-purple-900 hover:underline">
                         Forgot password?
                     </a>
                 </div>

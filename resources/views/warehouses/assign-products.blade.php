@@ -133,7 +133,7 @@
                                                         <div class="flex justify-between items-center">
                                                             <span class="text-slate-600 text-sm">Quantity:</span>
                                                             <input type="number" 
-                                                                   name="products[{{ $product->id }}][quantity]" 
+                                                                   {{-- name="products[{{ $product->id }}][quantity]"  --}}
                                                                    id="quantity_mobile_{{ $product->id }}"
                                                                    min="0" 
                                                                    value="0"

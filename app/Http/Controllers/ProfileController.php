@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
@@ -97,5 +98,33 @@ class ProfileController extends Controller
         ]);
         // redirect
         return redirect("/profile");
+    }
+
+    public function showChangePasswordForm()
+    {
+        return view('profile.change-password');
+    }
+    
+
+    public function changePassword(Request $request)
+    {
+        // Validate the passwords
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        // Check if the current password matches
+        $user = Auth::user();
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+
+        // Update the user's password
+        $user->password = Hash::make($request->input('new_password'));
+        $user->save();
+
+        // Redirect back with a success message
+        return redirect()->route('profile.index')->with('success', 'Password changed successfully.');
     }
 }

@@ -1,26 +1,38 @@
 <?php
 
-use App\Http\Controllers\RegisteredUserController;
 use App\Http\Controllers\SessionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PasswordResetRequestController;
 
 Route::middleware('guest')->group(function () {
-    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('/register', [RegisteredUserController::class, 'store']);
-
     Route::get('/login', [SessionController::class, 'create'])->name('login');
     Route::post('/login', [SessionController::class, 'store']);
+
+    Route::get('/password-reset-requests/create', [PasswordResetRequestController::class, 'create'])
+        ->name('password-reset-requests.create')
+        ->middleware('guest');
+
+        Route::post('/password-reset-requests', [PasswordResetRequestController::class, 'store'])
+        ->name('password-reset-requests.store')
+        ->middleware('guest');
 });
-Route::post('/logout', [SessionController::class, 'destroy']);
 
 Route::middleware('auth')->group(function () {
 
+    Route::post('/logout', [SessionController::class, 'destroy']);
+    
     Route::get('/', function () {
-        return view('home');
+        $stats = [
+            'employees' => \App\Models\employee::count(),
+            'customers' => \App\Models\customer::count(),
+            'products' => \App\Models\product::count(),
+            'stores' => \App\Models\retail_store::count(),
+            'warehouses' => \App\Models\warehouse::count(),
+        ];
+        return view('home', compact('stats'));
     });
 
-   // Route::get('/profile',[SessionController::class,'show'])->name('profile');
-
+    
     require __DIR__.'/employees.php';
     require __DIR__.'/customers.php';
     require __DIR__.'/stores.php';
@@ -28,7 +40,7 @@ Route::middleware('auth')->group(function () {
     require __DIR__.'/products.php';
     require __DIR__.'/departments.php';
     require __DIR__.'/marketing.php';
-        require __DIR__.'/profile.php';
+    require __DIR__.'/profile.php';
+    require __DIR__.'/PasswordResetRequests.php';
 
 });
-

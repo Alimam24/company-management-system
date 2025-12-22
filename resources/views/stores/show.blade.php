@@ -128,6 +128,11 @@
                             {{ $store->manager ? 'Change Manager' : 'Assign Manager' }}
                         </a>
 
+                        <a href="{{ route('stores.warehouses.link.page', $store) }}"
+                            class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700 transition-all duration-150">
+                            Link Warehouses
+                        </a>
+
                         @if ($store->manager)
                             <form method="POST" action="{{ route('stores.manager.remove', $store) }}" class="inline">
                                 @csrf

@@ -14,7 +14,7 @@
                         <p class="text-slate-600 mt-2 text-lg">Manage store employees and assignments</p>
                     </div>
 
-                    <a href="{{ route('employees.create') }}"
+                    <a href="{{ route('stores.employees.assign.page',$store) }}"
                         class="w-full sm:w-auto px-6 py-3 bg-purple-700 hover:bg-purple-800 text-white font-medium rounded-lg shadow-md transition transform hover:scale-105 active:scale-95">
                         + Assign Employee
                     </a>

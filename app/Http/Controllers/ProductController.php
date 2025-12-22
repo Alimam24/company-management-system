@@ -58,14 +58,15 @@ class ProductController extends Controller
                 'avatar' => ['nullable', 'image'],
             ]
         );
-
-        $avatar_url = request('avatar')->store('avatars', 'public');
+        if ($request->hasFile('avatar')) {
+            $avatar_url = request('avatar')->store('products', 'public');
+        }
 
         product::create([
             'name' => $attributes['name'],
             'price' => $attributes['price'],
             'description' => $attributes['description'],
-            'avatar_url' => $avatar_url,
+            'avatar_url' => $avatar_url ?? 'products/default.jpg',
         ]);
 
         return redirect('/');
@@ -133,8 +134,9 @@ class ProductController extends Controller
      */
     public function destroy(product $product)
     {
-        // authenticat
-
+        if($product->warehouses()->exists() || $product->retail_stores()->exists()){
+            return redirect("/products/$product->id")->withErrors(['error' => 'Cannot delete product associated with warehouses or retail stores.']);
+        }
         $product->delete();
 
         return redirect('/products');

@@ -77,9 +77,9 @@ class EmployeeController extends Controller
         // validate
         $attributes = $request->validate(
             [
-                'FirstName' => ['required', 'min:5'],
-                'LastName' => ['required', 'min:5'],
-                'NationalId' => ['required', 'size:10'],
+                'FirstName' => ['required', 'min:3'],
+                'LastName' => ['required', 'min:3'],
+                'NationalId' => ['required', 'size:11'],
                 'email' => ['required', 'email'],
                 'phone_num' => ['required', 'size:10'],
                 'BirthDate' => ['required', 'date', Rule::date()->beforeOrEqual(today()->subYears(18))],
@@ -92,8 +92,9 @@ class EmployeeController extends Controller
             ]
         );
 
+        if ($request->hasFile('avatar')) {
         $avarar_url = request('avatar')->store('avatars', 'public');
-
+        }
         // create
         $person = person::create(
             [
@@ -103,7 +104,7 @@ class EmployeeController extends Controller
                 'email' => $attributes['email'],
                 'phone_num' => $attributes['phone_num'],
                 'BirthDate' => $attributes['BirthDate'],
-                'avatar_url' => $avarar_url,
+                'avatar_url' => $avarar_url?? 'avatares/profile.jpg',
             ]
         );
         $employee = employee::create([
@@ -149,9 +150,9 @@ class EmployeeController extends Controller
         // validation
         request()->validate(
             [
-                'FirstName' => ['required', 'min:5'],
-                'LastName' => ['required', 'min:5'],
-                'NationalId' => ['required', 'size:10'],
+                'FirstName' => ['required', 'min:3'],
+                'LastName' => ['required', 'min:3'],
+                'NationalId' => ['required', 'size:11'],
                 'email' => ['required', 'email'],
                 'phone_num' => ['required', 'size:10'],
                 'BirthDate' => ['required', 'date', Rule::date()->beforeOrEqual(today()->subYears(18))],

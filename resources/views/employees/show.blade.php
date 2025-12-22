@@ -88,46 +88,62 @@
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Join Date:</span>
                                 <span
-                                    class="font-medium text-gray-900">{{ $employee->created_at->format('d/m/Y') }}</span>
+                                    class="font-medium text-gray-900">{{ optional($employee->created_at)->format('d/m/Y') ?? 'not known' }}</span>
                             </div>
 
-                            {{-- <div class="flex justify-between">
-              <span class="text-gray-600">Reports To:</span>
-              <span class="font-medium text-gray-900">Michael Chen</span>
-            </div>
+                            @if ($employee->user)
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Account UserName:</span>
+                                    <span class="font-medium text-gray-900">{{ $employee->user->UserName }}</span>
+                                </div>
+                            @else
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Account UserName:</span>
+                                    <span class="font-medium text-gray-900">No Account. <a
+                                            href="/employees/{{ $employee->id }}/create-account"
+                                            class="text-purple-700 hover:text-purple-900">Click to create</a></span>
+                                </div>
+                            @endif
 
-            <div class="flex justify-between">
-              <span class="text-gray-600">Work Type:</span>
-              <span class="font-medium text-gray-900">Full-time</span>
-            </div> --}}
                         </div>
                     </div>
 
                     <!-- About Section -->
                     {{-- <div class="mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">About</h2>
-          <p class="text-gray-700 leading-relaxed">
-            Sarah is a highly skilled software engineer with over 5 years of experience in full-stack development. 
-            She specializes in building scalable web applications and has a strong background in React, Node.js, 
-            and cloud technologies. Sarah is passionate about clean code, mentoring junior developers, and 
-            contributing to open-source projects.
-          </p>
-        </div> --}}
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">About</h2>
+                        <p class="text-gray-700 leading-relaxed">
+                            Sarah is a highly skilled software engineer with over 5 years of experience in full-stack
+                            development.
+                            She specializes in building scalable web applications and has a strong background in React,
+                            Node.js,
+                            and cloud technologies. Sarah is passionate about clean code, mentoring junior developers,
+                            and
+                            contributing to open-source projects.
+                        </p>
+                    </div> --}}
 
                     <!-- Skills Section -->
                     {{-- <div class="mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">Skills</h2>
-          <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">JavaScript</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">React</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Node.js</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">TypeScript</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">AWS</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Docker</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">PostgreSQL</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Git</span>
-          </div>
-        </div> --}}
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Skills</h2>
+                        <div class="flex flex-wrap gap-2">
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">JavaScript</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">React</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Node.js</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">TypeScript</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">AWS</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Docker</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">PostgreSQL</span>
+                            <span
+                                class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Git</span>
+                        </div>
+                    </div> --}}
 
                     <div class="flex flex-wrap items-center justify-end gap-2 pt-5 border-t border-gray-100">
                         <!-- Edit Profile -->
@@ -142,11 +158,43 @@
                         </a>
 
 
+                        @if ($employee->user)
+                            <a href="/employees/{{ $employee->id }}/edit-account"
+                                class="inline-flex items-center gap-1.5 px-4 py-2  text-sm font-medium rounded-md shadow-sm hover:bg-gray-100 active:bg-gray-400 transition-all duration-150">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                                Edit Account
+                            </a>
+
+                            <form method="POST" action="/employees/{{ $employee->id }}/delete-account">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-red-700 active:bg-red-800 transition-all duration-150">
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M19 7l-1 12a2 2 0 01-2 2H8a2 2 0 01-2-2L6 7" />
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M10 11v6m4-6v6" />
+                                    </svg>
+                                    Delete Account
+                                </button>
+                            </form>
+                        @endif
+
+
+
+
                         @can('manage')
-                        <a href={{ route('employees.change-role', $employee) }}
-                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-200 active:bg-gray-300 transition-all duration-150">
-                            change Role
-                        </a>
+                            <a href={{ route('employees.change-role', $employee) }}
+                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-200 active:bg-gray-300 transition-all duration-150">
+                                change Role
+                            </a>
                         @endcan
 
                         <!-- Delete -->
@@ -162,11 +210,10 @@
                                 Remove
                             </button>
                         </form>
-                    
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
 

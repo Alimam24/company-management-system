@@ -14,28 +14,27 @@ class AccessControl
      * @param  \Illuminate\Http\Request  $request
      * @param  \Closure  $next
      * @param  int|null  $departmentName
-     * @param  string|null  $roleName
      * @return mixed
      */
-    public function handle(Request $request, Closure $next, $departmentName = null, $roleName = null)
+    public function handle(Request $request, Closure $next, $departmentName = null)
     {
         $user = Auth::user();
 
         $employee = $user->employee;
 
-        // // Check state
-        // if ($employee->emp_state->StateName !== 'Active Employee') {
-        //     abort(403, 'Your account is inactive.');
-        // }
+        // Check state
+        if ($user->Is_Active !== 1) {
+            abort(403, 'Your account is inactive.');
+        }
 
-        // // Check department
-        // if ($departmentName && $employee->department->DeptName != $departmentName) {
-        //     abort(403, 'You do not have access to this department.');
-        // }
+        // Check department
+        if($employee->department->DeptName === 'Headquarters') {
+            return $next($request);
+        }
 
-        // Check role
-        if ($roleName && $employee->role->name != $roleName) {
-            abort(403, 'You do not have permission to access this page.');
+
+        elseif ($departmentName && $employee->department->DeptName != $departmentName) {
+            abort(403, 'You do not have access to this department.');
         }
 
         return $next($request);

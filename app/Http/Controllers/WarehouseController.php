@@ -151,7 +151,9 @@ class WarehouseController extends Controller
      */
     public function destroy(warehouse $warehouse)
     {
-        // authenticat
+        if($warehouse->stores()->exists() || $warehouse->products()->exists()){
+            return redirect("/warehouses/$warehouse->id")->withErrors(['error' => 'Cannot delete warehouse associated with stores or products.']);
+        }
 
         $warehouse->delete();
 

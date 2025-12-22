@@ -12,7 +12,9 @@
             class="bg-white shadow-xl shadow-gray-100 w-full mx-auto flex flex-col sm:flex-row gap-3 sm:items-center justify-between px-5 py-4 rounded-md mb-2.5">
             <!-- Left side: Employee info -->
             <div class="flex items-center gap-4">
-                <img src={{ $employee->person->avatar_url }} alt="Employee photo"
+                <img  src="{{ $employee->person->avatar_url
+                                            ? asset('storage/' . $employee->person->avatar_url)
+                                            : asset('storage/avatars/profile.png') }}" alt="Employee photo"
                     class="w-14 h-14 rounded-full object-cover ring-2 ring-purple-100" />
 
                 <div>

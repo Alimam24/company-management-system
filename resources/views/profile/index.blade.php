@@ -1,6 +1,6 @@
 <x-layouts.app>
     <x-slot:heading>
-        Employee Profile
+        User Profile: {{ $employee->user->UserName }}
     </x-slot>
 
     <div class="bg-gray-50 min-h-screen py-8 px-4">
@@ -79,85 +79,64 @@
                                     class="font-medium text-gray-900">{{ $employee->created_at->format('d/m/Y') }}</span>
                             </div>
 
-                            {{-- <div class="flex justify-between">
-              <span class="text-gray-600">Reports To:</span>
-              <span class="font-medium text-gray-900">Michael Chen</span>
-            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Account UserName:</span>
+                                <span class="font-medium text-gray-900">{{ $employee->user->UserName }}</span>
+                            </div>
+                            
 
-            <div class="flex justify-between">
-              <span class="text-gray-600">Work Type:</span>
-              <span class="font-medium text-gray-900">Full-time</span>
-            </div> --}}
+
+
+                            <!-- About Section -->
+                            {{-- <div class="mb-8">
+                                    <h2 class="text-xl font-semibold text-gray-900 mb-4">About</h2>
+                                    <p class="text-gray-700 leading-relaxed">
+                                        Sarah is a highly skilled software engineer with over 5 years of experience in full-stack development. 
+                                        She specializes in building scalable web applications and has a strong background in React, Node.js, 
+                                        and cloud technologies. Sarah is passionate about clean code, mentoring junior developers, and 
+                                        contributing to open-source projects.
+                                    </p>
+                            </div> --}}
+
+                            <!-- Skills Section -->
+                            {{-- <div class="mb-8">
+                                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Skills</h2>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">JavaScript</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">React</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Node.js</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">TypeScript</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">AWS</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Docker</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">PostgreSQL</span>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Git</span>
+                                    </div>
+                            </div> --}}
+
+                            <div class="flex flex-wrap items-center justify-end gap-2 pt-5 border-t border-gray-100">
+                                <!-- Edit Profile -->
+                                <a href="/profile/edit"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-700 text-white text-sm font-medium rounded-md shadow-sm hover:bg-purple-800 active:bg-purple-900 transition-all duration-150">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                    Edit
+                                </a>
+
+                                <!-- Change Password -->
+                                <a href="/profile/change-password"
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-200 active:bg-gray-300 transition-all duration-150">
+                                    change password
+                                </a>
+
+                                
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- About Section -->
-                    {{-- <div class="mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">About</h2>
-          <p class="text-gray-700 leading-relaxed">
-            Sarah is a highly skilled software engineer with over 5 years of experience in full-stack development. 
-            She specializes in building scalable web applications and has a strong background in React, Node.js, 
-            and cloud technologies. Sarah is passionate about clean code, mentoring junior developers, and 
-            contributing to open-source projects.
-          </p>
-        </div> --}}
-
-                    <!-- Skills Section -->
-                    {{-- <div class="mb-8">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4">Skills</h2>
-          <div class="flex flex-wrap gap-2">
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">JavaScript</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">React</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Node.js</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">TypeScript</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">AWS</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Docker</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">PostgreSQL</span>
-            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">Git</span>
-          </div>
-        </div> --}}
-
-                    <div class="flex flex-wrap items-center justify-end gap-2 pt-5 border-t border-gray-100">
-                        <!-- Edit Profile -->
-                        <a href="/profile/edit"
-                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-700 text-white text-sm font-medium rounded-md shadow-sm hover:bg-purple-800 active:bg-purple-900 transition-all duration-150">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
-                            </svg>
-                            Edit
-                        </a>
-
-                        <!-- Download Resume -->
-                        <button
-                            class="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md shadow-sm hover:bg-gray-200 active:bg-gray-300 transition-all duration-150">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" />
-                            </svg>
-                            Download
-                        </button>
-
-                        {{-- <!-- Delete -->
-                        <form method="POST" action="/employees/{{ $employee->id }}">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-red-700 active:bg-red-800 transition-all duration-150">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Remove
-                            </button>
-                        </form> --}}
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
 
 

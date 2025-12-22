@@ -64,9 +64,9 @@ class CustomerController extends Controller
     {
         $attributes = $request->validate(
             [
-                'FirstName' => ['required', 'min:5'],
-                'LastName' => ['required', 'min:5'],
-                'NationalId' => ['required', 'size:10'],
+                'FirstName' => ['required', 'min:3'],
+                'LastName' => ['required', 'min:3'],
+                'NationalId' => ['required', 'size:11'],
                 'email' => ['required', 'email'],
                 'phone_num' => ['required', 'size:10'],
                 'BirthDate' => ['required', 'date', Rule::date()->beforeOrEqual(today()->subYears(18))],
@@ -133,9 +133,9 @@ class CustomerController extends Controller
         // validation
         request()->validate(
             [
-                'FirstName' => ['required', 'min:5'],
-                'LastName' => ['required', 'min:5'],
-                'NationalId' => ['required', 'size:10'],
+                'FirstName' => ['required', 'min:3'],
+                'LastName' => ['required', 'min:3'],
+                'NationalId' => ['required', 'size:11'],
                 'email' => ['required', 'email'],
                 'phone_num' => ['required', 'size:10'],
                 'BirthDate' => ['required', 'date', Rule::date()->beforeOrEqual(today()->subYears(18))],
@@ -189,7 +189,9 @@ class CustomerController extends Controller
      */
     public function destroy(customer $customer)
     {
-        // authenticat
+        if($customer->marketingEmployee()->exists()){
+            return redirect("/customers/$customer->id")->withErrors(['error' => 'Cannot delete customer associated with marketing employees or offers.']);
+        }
 
         $customer->delete();
 

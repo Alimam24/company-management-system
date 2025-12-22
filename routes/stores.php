@@ -32,7 +32,7 @@ Route::middleware(['dept:Retail Store Management'])
             ->name('products.update');
 
         Route::delete('/{store}/products/{product}', [StoreController::class, 'removeProduct'])
-            ->name('products.remove')->can('manage');
+            ->name('products.remove');
 
         // Employee management routes
         Route::get('/{store}/employees', [StoreController::class, 'listemployees'])

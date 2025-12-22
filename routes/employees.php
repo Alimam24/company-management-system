@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeUserController;
+use App\Http\Controllers\PasswordResetRequestController;
 
 Route::middleware(['dept:Human resources'])
     ->prefix('employees')
@@ -22,5 +24,12 @@ Route::middleware(['dept:Human resources'])
         Route::patch('/{employee}/change-role', [EmployeeController::class, 'updateRole'])->name('update-role')->can('manage');
 
 
+        Route::get('/{employee}/create-account', [EmployeeUserController::class, 'createAccount'])->name('create-account');
+        Route::post('/{employee}/create-account', [EmployeeUserController::class, 'storeAccount'])->name('store-account');
+        Route::get('/{employee}/edit-account', [EmployeeUserController::class, 'editAccount'])->name('edit-account');
+        Route::patch('/{employee}/update-account', [EmployeeUserController::class, 'updateAccount'])->name('update-account');
+        Route::delete('/{employee}/delete-account', [EmployeeUserController::class, 'destroyAccount'])->name('destroy-account');
+        
+        
     });
 
