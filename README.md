@@ -1,61 +1,177 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## Retail Management Dashboard
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+WP2 is a web-based retail management system built with **Laravel** and **Blade** that provides a centralized dashboard for managing employees, customers, products, warehouses, and stores. It offers role/department-based access, quick actions for daily operations, and a clean, modern interface for monitoring key business metrics.
 
-## About Laravel
+### Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Dashboard Overview**
+  - Personalized welcome message for logged-in employees.
+  - High-level statistics for:
+    - Total employees
+    - Total customers
+    - Total products
+    - Retail stores
+    - Warehouses
+- **Role/Department-Based Access**
+  - Conditional access to modules based on the user’s department (HR, Sales/Marketing, Inventory, Warehousing, etc.) and his role in the department (manager/ employee).
+  - Tailored quick actions for each department (e.g. Add Employee, Add Customer, Add Product).
+- **Entity Management**
+  - **Employees**: Create, update, and manage employee records, including assignment to their respective departments.
+  - **Customers**: Register and manage customer profiles, assign promotional offers, and link VIP customers to dedicated marketing employees.
+  - **Products**:Maintain and manage the product catalog, including product details and availability.
+  - **Stores**: Manage retail store locations, associate stores with warehouses, and handle product transfers from warehouses to stores.
+  - **Warehouses**: Manage warehouse facilities, inventory levels, and stock locations.
+  - **Departments**: Manage organizational departments (for admins).
+- **Modern UI / UX**
+  - Responsive layout using Tailwind.
+  - Card-based stats, quick action tiles, and intuitive navigation.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Backend**: PHP 8.4, Laravel 12
+- **Frontend**: Blade templates, Tailwind-style utility classes
+- **Database**: Sqlite
+- **Environment**: PHP 8.4,vscode, laravel Herd, Composer
 
-## Learning Laravel
+### Getting Started
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+#### Prerequisites
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **PHP** >= 8.4
+- **Composer**
+- **Node.js & npm**
+- **Git**
+- **Laravel Herd**
+- **Any database gui that support sqlite**
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### Installation
 
-## Laravel Sponsors
+1. **Clone the repository**
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+  
+   git clone https://github.com/Alimam24/company-management-system.git
+   cd company-management-system
+   2. **Install PHP dependencies**
 
-### Premium Partners
+  
+   composer install
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+   3. **Install front-end dependencies (optional or just use the cdn for tailwind)**
 
-## Contributing
+  
+   npm install
+   npm run build   # or: npm run dev
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+   4. **Environment configuration**
 
-## Code of Conduct
+  
+   cp .env.example .env
+      - Update database credentials in `.env`:
+     - `DB_DATABASE`
+     - `DB_USERNAME`
+     - `DB_PASSWORD`
+   - Set `APP_NAME`, `APP_URL`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+5. **Generate application key**
 
-## Security Vulnerabilities
+  
+   php artisan key:generate
+   6. **Run migrations and seeders**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+  
+   php artisan migrate
+   # php artisan db:seed   
+   7. **Serve the application**
 
-## License
+  
+   php artisan serve
+      The app will be accessible at `http://127.0.0.1:8000` by default.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Usage
+
+Here is a **clean, ready-to-paste README text** (no explanations, no extras):
+
+---
+
+## 🔐 Authentication & Access Control
+
+Access to the system is restricted to company employees only so there is no registration form.
+For demonstration purposes, the following credentials can be used to log in:
+
+| Department                   | Username    |
+| ---------------------------- | ----------- |
+| Headquarters                 | `head`      |
+| Human Resources              | `employee`  |
+| Marketing & Customer Contact | `customer`  |
+| Retail Store Management      | `store`     |
+| Warehouse Management         | `warehouse` |
+| Product Management           | `product`   |
+
+**Password (for all accounts):**
+
+```
+password
+```
+
+### Manager Access
+
+To log in as a manager, add the letter **`M`** before the username.
+Example:
+
+```
+Memployee
+```
+
+Each user account is linked to an employee record and a department.
+The assigned department controls module visibility, permissions, and available quick actions.
+
+---
+
+
+- **Dashboard**
+  - View real-time counts for employees, customers, products, stores, and warehouses.
+  - Use the **Quick Actions** section to:
+    - Add employees, customers, products, stores, warehouses.
+    - Access department management (for admins).
+    - Manage marketing offers and other department-specific features.
+
+- **Navigation**
+  - Use the main navigation/menu to move between modules: Employees, Customers, Products, Stores, Warehouses, Departments, Marketing Offers, etc.
+
+### Project Structure 
+
+- `app/` – Laravel application logic (models, controllers, services).
+- `resources/views/` – Blade templates for the UI.
+  - `home.blade.php` – Main dashboard view.
+- `routes/` – Route definitions (web and API).
+- `database/migrations/` – Database table definitions.
+- `public/` – Public assets (built CSS/JS, images).
+
+### Environment & Configuration
+
+- All application-level configuration is managed via the `.env` file and `config/` files.
+- Common settings:
+  - `APP_ENV`, `APP_DEBUG`, `APP_URL`
+  - Database connection settings
+  - Mail configuration (for notifications, if used)
+  - Queue and cache drivers, if enabled
+
+### Contributing
+
+Contributions are welcome. To contribute:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix:
+  
+   git checkout -b feature/my-new-feature
+   3. Commit your changes with clear messages.
+4. Open a Pull Request describing your changes and any context.
+
+
+### Contact
+
+For questions, suggestions, or support:
+
+- **Author**: MHD Walid Alimam
+- **Email**: walid.alimam24@gmail.com
+- **GitHub**: https://github.com/Alimam24
