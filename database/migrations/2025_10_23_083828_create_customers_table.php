@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Models\customer_type;
 use App\Models\Customer_state;
-use App\Models\person;
+use App\Models\Person;
 
 return new class extends Migration
 {
@@ -16,7 +16,7 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(person::class)->unique();
+            $table->foreignIdFor(Person::class)->unique();
             $table->foreignIdFor(customer_type::class)->default(2);
             $table->foreignIdFor(Customer_state::class)->default(1);
             $table->timestamps();

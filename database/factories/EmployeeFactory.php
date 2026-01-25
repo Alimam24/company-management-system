@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\person;
+use App\Models\Person;
 use App\Models\department;
 use App\Models\emp_role;
 use App\Models\emp_state;
@@ -22,7 +22,7 @@ class EmployeeFactory extends Factory
     {
         return [
             // Each employee is linked to a unique person
-            'person_id' => person::factory(),
+            'person_id' => Person::factory(),
 
             // Assign a random existing department
             'department_id' => department::inRandomOrder()->first()->id ?? department::factory(),

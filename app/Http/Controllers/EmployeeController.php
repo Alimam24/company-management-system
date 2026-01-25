@@ -6,7 +6,7 @@ use App\Models\department;
 use App\Models\emp_role;
 use App\Models\emp_state;
 use App\Models\employee;
-use App\Models\person;
+use App\Models\Person;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
@@ -96,7 +96,7 @@ class EmployeeController extends Controller
         $avarar_url = request('avatar')->store('avatars', 'public');
         }
         // create
-        $person = person::create(
+        $person = Person::create(
             [
                 'FirstName' => $attributes['FirstName'],
                 'LastName' => $attributes['LastName'],

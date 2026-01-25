@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-
+use App\Models\customer;
+use App\Models\employee;
+use App\Models\Person;
+use App\Models\product;
+use App\Models\retail_store;
+use App\Models\User;
+use App\Models\warehouse;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Person;
-use App\Models\Employee;
-use App\Models\Customer;
-use App\Models\retail_store;
-use App\Models\warehouse;
-use App\Models\User;
-use App\Models\product;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,36 +22,38 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-         // Call your existing seeders
-        $this->call([
-            EmpStateSeeder::class,
-            EmpRoleSeeder::class,
-            CustomerTypeSeeder::class,
-            CustomerStateSeeder::class,
-            DepartmentSeeder::class,
-            CitiesSeeder::class,
-        ]);
+        // // Call your existing seeders
+        // $this->call([
+        //     EmpStateSeeder::class,
+        //     EmpRoleSeeder::class,
+        //     CustomerTypeSeeder::class,
+        //     CustomerStateSeeder::class,
+        //     DepartmentSeeder::class,
+        //     CitiesSeeder::class,
+        //     PersonSeeder::class,
+        //     EmployeeSeeder::class,
+        //     UserSeeder::class,
+        // ]);
 
-          // Seed persons
-        person::factory()->count(20)->create();
+        // // Seed persons
+        // //Person::factory()->count(20)->create();
 
-        // Seed employees
-        //employee::factory()->count(10)->create();
+       
 
-        // Seed customers
-        customer::factory()->count(10)->create();
+        // // Seed customers
+        // customer::factory()->count(10)->create();
 
-        // Seed users
-        //user::factory()->count(10)->create();
+        // // Seed users
+        // // user::factory()->count(10)->create();
 
-        // Seed stores
-        retail_store::factory()->count(20)->create();
+        // // Seed stores
+        // retail_store::factory()->count(20)->create();
 
-        // Seed warehouses
-        warehouse::factory()->count(20)->create();
+        // // Seed warehouses
+        // warehouse::factory()->count(20)->create();
 
-        //seed products
-        product::factory()->count(20)->create();
-    
+        // // seed products
+        // product::factory()->count(20)->create();
+
     }
 }

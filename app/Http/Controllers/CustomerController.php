@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\customer;
 use App\Models\Customer_state;
 use App\Models\customer_type;
-use App\Models\person;
+use App\Models\Person;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -82,7 +82,7 @@ class CustomerController extends Controller
 
         $avarar_url = request('avatar')->store('avatars', 'public');
 
-        $person = person::create(
+        $person = Person::create(
             [
                 'FirstName' => request('FirstName'),
                 'LastName' => request('LastName'),
