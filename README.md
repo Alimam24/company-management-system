@@ -110,7 +110,7 @@ For demonstration purposes, the following credentials can be used to log in:
 **Password (for all accounts):**
 
 ```
-password
+Walid321
 ```
 
 ### Manager Access

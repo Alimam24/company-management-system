@@ -12,7 +12,7 @@ class retail_store extends Model
 
     public function city()
     {
-        return $this->belongsTo(City::class);
+        return $this->belongsTo(city::class);
     }
 
     public function employees()

@@ -22,18 +22,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // // Call your existing seeders
-        // $this->call([
-        //     EmpStateSeeder::class,
-        //     EmpRoleSeeder::class,
-        //     CustomerTypeSeeder::class,
-        //     CustomerStateSeeder::class,
-        //     DepartmentSeeder::class,
-        //     CitiesSeeder::class,
-        //     PersonSeeder::class,
-        //     EmployeeSeeder::class,
-        //     UserSeeder::class,
-        // ]);
+        $this->call([
+            EmpStateSeeder::class,
+            EmpRoleSeeder::class,
+            CustomerTypeSeeder::class,
+            CustomerStateSeeder::class,
+            DepartmentSeeder::class,
+            CitiesSeeder::class,
+            PersonSeeder::class,
+            EmployeeSeeder::class,
+            UserSeeder::class,
+            CustomerSeeder::class,
+            Retail_storeSeeder::class,
+            WarehouseSeeder::class,
+            ProductSeeder::class,
+
+        ]);
 
         // // Seed persons
         // //Person::factory()->count(20)->create();

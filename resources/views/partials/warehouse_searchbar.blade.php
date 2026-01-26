@@ -1,5 +1,5 @@
 <div class="bg-white shadow-sm rounded-md px-5 py-4 mb-6 max-w-6xl mx-auto">
-    <form method="GET" action="/stores" 
+    <form method="GET" action="/warehouses" 
           class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
 
         <!-- Search input -->
