@@ -20,7 +20,7 @@
         <header class="bg-white shadow-sm">
             <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 sm:flex sm:justify-between">
                 <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ $heading }}</h1>
-                @auth
+                {{-- @auth
                     @php
                         $department_id = auth()->user()->employee->department->id ?? null;
                     @endphp
@@ -35,7 +35,7 @@
                     @elseif($department_id === 6)
                         <x-button href="/products/create">add product</x-button>
                     @endif
-                @endauth
+                @endauth --}}
             </div>
 
 
